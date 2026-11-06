@@ -87,6 +87,7 @@ async def _evaluate(settings: Settings, args: argparse.Namespace) -> dict[str, A
 
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
+    exit_code = 0
     try:
         settings = Settings.load()
         if args.command == "respond":
@@ -107,8 +108,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             value = read_report(directory.parent, directory.name)
         else:
             value = asyncio.run(_evaluate(settings, args))
+            exit_code = 0 if value["summary"]["status"] == "completed" else 1
         print(json.dumps(value, ensure_ascii=False, allow_nan=False))
-        return 0
+        return exit_code
     except AppError as exc:
         print(json.dumps({"error": {"code": exc.code, "request_id": exc.request_id}}), file=sys.stderr)
     except (ValidationError, ValueError):

@@ -46,3 +46,21 @@ def test_respond_rejects_conflicting_inputs_before_calling_provider():
     with pytest.raises(SystemExit) as result:
         cli.main(["respond", "--text", "Consulta", "--stdin"])
     assert result.value.code == 2
+
+
+@pytest.mark.parametrize("action", ["run", "compare", "adversarial"])
+def test_incomplete_evaluation_returns_nonzero_and_keeps_a_readable_partial_report(
+    tmp_path, monkeypatch, capsys, action,
+):
+    provider = ScriptedProvider([ProviderError("quota_exhausted")])
+    settings = settings_at(tmp_path)
+    monkeypatch.setattr(cli.Settings, "load", lambda: settings)
+    monkeypatch.setattr(cli, "Runtime", lambda _: Runtime(settings, providers={"openai": provider}))
+    assert cli.main(["eval", action, "--provider", "openai"]) == 1
+    output = capsys.readouterr()
+    report = json.loads(output.out)
+    assert report["summary"]["status"] == "provider_error"
+    assert report["summary"]["stopping_error"] == "quota_exhausted"
+    assert len(provider.calls) == 1
+    assert cli.main(["eval", "summarize", report["directory"]]) == 0
+    assert json.loads(capsys.readouterr().out)["summary"]["status"] == "provider_error"

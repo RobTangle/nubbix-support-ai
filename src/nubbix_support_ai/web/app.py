@@ -1,6 +1,7 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
@@ -17,7 +18,7 @@ from nubbix_support_ai.web.routes import STATIC, build_router
 def create_app(settings: Settings, runtime: Runtime | None = None) -> FastAPI:
     owns_runtime = runtime is None
     active_runtime = runtime if runtime is not None else Runtime(settings)
-    tasks: set[asyncio.Task[None]] = set()
+    tasks: set[asyncio.Task[Any]] = set()
 
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncIterator[None]:

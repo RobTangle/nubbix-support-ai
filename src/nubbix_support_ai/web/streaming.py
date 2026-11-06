@@ -28,7 +28,7 @@ class LabStream(StreamingResponse):
 
 
 async def stream_operation(work: StreamWork, *, operation: str, queue_size: int = 32,
-                           tasks: set[asyncio.Task[None]] | None = None) -> AsyncGenerator[str, None]:
+                           tasks: set[asyncio.Task[Any]] | None = None) -> AsyncGenerator[str, None]:
     queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue(maxsize=queue_size)
     async def emit(event: dict[str, Any]) -> None:
         await queue.put({"type": "event", "event": event})

@@ -4,9 +4,10 @@ from pathlib import Path
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Request
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, ConfigDict, Field
+from starlette.requests import ClientDisconnect
 
 from nubbix_support_ai.bootstrap import Runtime
 from nubbix_support_ai.observability.events import FlowEvent
@@ -26,7 +27,7 @@ class TriageRequest(BaseModel):
     prompt_version: str | None = Field(default=None, min_length=1, max_length=64)
 
 
-def build_router(runtime: Runtime, tasks: set[asyncio.Task[None]]) -> APIRouter:
+def build_router(runtime: Runtime, tasks: set[asyncio.Task[Any]]) -> APIRouter:
     router = APIRouter()
 
     @router.get("/", include_in_schema=False)
@@ -54,11 +55,27 @@ def build_router(runtime: Runtime, tasks: set[asyncio.Task[None]]) -> APIRouter:
         }
 
     @router.post("/api/triage", response_model=SupportResponse)
-    async def triage(payload: TriageRequest) -> SupportResponse:
+    async def triage(payload: TriageRequest, request: Request) -> SupportResponse:
         runtime.catalog.get(payload.prompt_version or runtime.settings.prompt)
         service = runtime.service(payload.provider, payload.model)
-        result = await service.run(Ticket(text=payload.ticket), prompt_version=payload.prompt_version)
-        return result.response
+        async def disconnected() -> None:
+            while True:
+                if (await request.receive())["type"] == "http.disconnect":
+                    return
+        work = asyncio.create_task(service.run(Ticket(text=payload.ticket),
+                                               prompt_version=payload.prompt_version))
+        monitor = asyncio.create_task(disconnected())
+        tasks.add(work)
+        try:
+            done, _ = await asyncio.wait({work, monitor}, return_when=asyncio.FIRST_COMPLETED)
+            if work in done:
+                return (await work).response
+            raise ClientDisconnect()
+        finally:
+            work.cancel()
+            monitor.cancel()
+            await asyncio.gather(work, monitor, return_exceptions=True)
+            tasks.discard(work)
 
     @router.post("/api/lab/runs/stream")
     async def stream_run(payload: TriageRequest) -> LabStream:

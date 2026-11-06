@@ -131,6 +131,29 @@ async def test_gemini_rate_limit_has_no_hidden_sdk_retries():
     assert len(attempts) == 1
 
 
+@pytest.mark.parametrize("total,thoughts,expected_output", [
+    (100, None, 0), (105, 5, 5), (99, None, None), (102, 5, None), (None, None, None),
+])
+async def test_gemini_blocked_prompt_keeps_deducible_usage_without_candidates(
+    total, thoughts, expected_output,
+):
+    provider = GeminiProvider("test-key", "gemini-3.5-flash-lite", transport=httpx.MockTransport(
+        lambda _: httpx.Response(200, json={"promptFeedback": {"blockReason": "SAFETY"},
+            "usageMetadata": {"promptTokenCount": 100, "totalTokenCount": total,
+                              "thoughtsTokenCount": thoughts}})))
+    try:
+        reply = await provider.complete(REQUEST)
+    finally:
+        await provider.aclose()
+    assert reply.refused is True
+    if expected_output is None:
+        assert reply.usage is None
+    else:
+        assert reply.usage.input_tokens == 100
+        assert reply.usage.output_tokens == expected_output
+        assert reply.usage.reasoning_output_tokens == (thoughts or 0)
+
+
 @pytest.mark.parametrize("details,code,retryable,delay", [
     ([{"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": "3.5s"}],
      "rate_limited", True, 3.5),

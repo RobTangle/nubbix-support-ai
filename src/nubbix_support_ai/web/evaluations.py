@@ -47,7 +47,7 @@ class CampaignStream(LabStream):
             _campaign_lock.release()
 
 
-def build_evaluation_router(runtime: Runtime, tasks: set[asyncio.Task[None]]) -> APIRouter:
+def build_evaluation_router(runtime: Runtime, tasks: set[asyncio.Task[Any]]) -> APIRouter:
     router = APIRouter()
 
     @router.post("/api/lab/evaluations/stream")

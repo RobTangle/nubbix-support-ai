@@ -14,9 +14,11 @@ def _usage(counts: types.GenerateContentResponseUsageMetadata | None) -> TokenUs
     try:
         candidates = counts.candidates_token_count
         reasoning = counts.thoughts_token_count or 0
-        if candidates is None:
+        if candidates is None and counts.total_token_count is None:
             return None
-        output = candidates + reasoning
+        if candidates is not None and candidates < 0:
+            return None
+        output = (candidates or 0) + reasoning
         if counts.total_token_count is not None:
             total_output = counts.total_token_count - counts.prompt_token_count
             if total_output < output:
