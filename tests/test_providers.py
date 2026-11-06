@@ -1,5 +1,6 @@
 import json
 import logging
+from dataclasses import replace
 
 import httpx
 import pytest
@@ -129,6 +130,22 @@ async def test_gemini_rate_limit_has_no_hidden_sdk_retries():
     finally:
         await provider.aclose()
     assert len(attempts) == 1
+
+
+@pytest.mark.parametrize("seconds,server_seconds", [(1, 10), (7.2, 10), (15, 15)])
+async def test_gemini_server_deadline_accepts_short_local_timeouts(seconds, server_seconds):
+    requests = []
+    def handle(request):
+        requests.append(request)
+        return httpx.Response(200, json={"promptFeedback": {"blockReason": "SAFETY"}})
+    provider = GeminiProvider("test-key", "gemini-3.5-flash-lite",
+                              transport=httpx.MockTransport(handle))
+    try:
+        await provider.complete(replace(REQUEST, timeout_seconds=seconds))
+    finally:
+        await provider.aclose()
+    assert requests[0].headers["x-server-timeout"] == str(server_seconds)
+    assert requests[0].extensions["timeout"]["read"] == seconds
 
 
 @pytest.mark.parametrize("total,thoughts,expected_output", [

@@ -1,3 +1,4 @@
+from math import ceil
 from typing import Any
 
 import httpx
@@ -59,7 +60,11 @@ class GeminiProvider:
                     response_json_schema=request.schema, max_output_tokens=request.max_output_tokens,
                     thinking_config=types.ThinkingConfig(thinking_level=types.ThinkingLevel.MINIMAL),
                     service_tier=types.ServiceTier.STANDARD,
-                    http_options=types.HttpOptions(timeout=max(1, int(request.timeout_seconds * 1000))),
+                    # Gemini's server deadline has a 10s minimum; the local timeout stays shorter.
+                    http_options=types.HttpOptions(
+                        timeout=max(1, int(request.timeout_seconds * 1000)),
+                        headers={"X-Server-Timeout": str(max(10, ceil(request.timeout_seconds)))},
+                    ),
                 ),
             )
             usage = _usage(response.usage_metadata)
