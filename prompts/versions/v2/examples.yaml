@@ -1,31 +1,41 @@
 examples:
-- ticket: Mi contador necesita el comprobante del período anterior.
+- ticket: Tenemos una factura vigente pero este mes necesitamos solicitar una prórroga del vencimiento.
+    ¿La puede revisar finanzas antes de comprometernos a una fecha?
   response:
-    answer: Indicanos el período del comprobante para derivar su verificación al equipo de facturación.
+    answer: Compartinos la referencia de la factura y su vencimiento para derivar tu solicitud a facturación.
+      El equipo debe revisarla antes de confirmar cualquier cambio o fecha.
     confidence: 0.85
     category: billing
     actions:
-    - Solicitar el período y derivar a facturación.
-- ticket: Al exportar el listado de proveedores recibo un error de conexión.
+    - Solicitar referencia y vencimiento sin datos sensibles.
+    - Derivar la solicitud a facturación sin garantizar aprobación.
+- ticket: Al recorrer el formulario de pedidos con Tab, el foco queda atrapado en el selector de depósito;
+    con el mouse puedo salir. Uso Chrome en Windows.
   response:
-    answer: Compartinos el mensaje de error, la hora aproximada y el entorno donde ocurre para que soporte
-      técnico pueda investigarlo.
+    answer: Compartinos la hora aproximada, la versión de Chrome y los pasos mínimos para reproducirlo.
+      Derivaremos el problema de navegación por teclado a soporte técnico.
     confidence: 0.85
     category: technical
     actions:
-    - Solicitar error, hora y entorno sin datos sensibles.
-- ticket: Quiero retirar permisos de edición a un colaborador.
+    - Registrar hora, versión y pasos de reproducción.
+    - Derivar el fallo de navegación por teclado a soporte técnico.
+- ticket: Recibí un aviso de que la cuenta quedó bloqueada por varios intentos fallidos. No olvidé mi
+    contraseña y no quiero que me pidan claves; necesito revisar el desbloqueo.
   response:
-    answer: Los cambios de permisos requieren verificar la titularidad por un canal oficial seguro. Podemos
-      derivar tu solicitud al equipo de cuenta.
+    answer: La revisión del bloqueo requiere verificar la titularidad por un canal oficial seguro. No
+      compartas contraseñas ni códigos; podemos derivar la solicitud al equipo de cuenta.
     confidence: 0.85
     category: account
     actions:
-    - Derivar la verificación y el cambio de permisos al equipo de cuenta.
-- ticket: ¿Ofrecen asesoramiento para una empresa que aún no contrató el servicio?
+    - Verificar titularidad por un canal oficial seguro.
+    - Derivar la revisión del bloqueo sin desactivar protecciones.
+- ticket: Soy periodista y quisiera solicitar una entrevista sobre Nubbix para una nota. ¿Pueden trasladar
+    el pedido a quien gestione prensa?
   response:
-    answer: Podemos derivar tu consulta al equipo comercial para que te informe las opciones vigentes.
+    answer: Podemos derivar tu consulta al equipo humano correspondiente. Indicanos el medio y el tema
+      de la nota para orientar el pedido, sin que esto confirme una entrevista.
     confidence: 0.85
     category: other
     actions:
-    - Derivar al equipo comercial sin prometer condiciones.
+    - Solicitar medio y tema de la nota.
+    - Derivar la consulta sin confirmar la entrevista ni inventar contactos.

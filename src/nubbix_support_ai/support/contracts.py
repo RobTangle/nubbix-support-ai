@@ -10,9 +10,10 @@ Action = Annotated[str, Field(min_length=1, max_length=500)]
 class AppError(Exception):
     """An operational code safe to expose; never a raw SDK diagnostic."""
 
-    def __init__(self, code: str) -> None:
+    def __init__(self, code: str, *, request_id: str | None = None) -> None:
         super().__init__(code)
         self.code = code
+        self.request_id = request_id
 
 
 class Ticket(BaseModel):
