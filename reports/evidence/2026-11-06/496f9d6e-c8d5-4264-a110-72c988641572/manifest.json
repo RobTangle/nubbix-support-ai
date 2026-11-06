@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "run_id": "496f9d6e-c8d5-4264-a110-72c988641572",
+  "created_at": "2026-11-06T17:43:09.953101+00:00",
+  "provider": "google",
+  "model": "gemini-3.5-flash-lite",
+  "parameters": {
+    "thinking_level": "MINIMAL",
+    "service_tier": "standard"
+  },
+  "dataset_hash": "3c709cc60fbb1cb565d24908a122f1f7611e1182d97181556fd15b8387b0c07b",
+  "dataset_source": "Nubbix prototype synthetic corpus, known regression cases",
+  "synthetic": true,
+  "splits": [
+    "dev"
+  ],
+  "case_ids": [
+    "dev-billing-01",
+    "dev-technical-01",
+    "dev-account-01",
+    "dev-other-01"
+  ],
+  "case_count": 4,
+  "prompt_versions": [
+    "v1",
+    "v2"
+  ],
+  "prompts": [
+    {
+      "version": "v1",
+      "content_hash": "10e5278eb1f74bdbac66158dbd72f36bab4cbbbe91d7e01639b77fbd0aa8eed0",
+      "comparison_hash": "0c400ec805428f2ddbb5f472ce7e51c8d7481da7a8ff8c82b9ed200df95d313d",
+      "original_content_hash": "10e5278eb1f74bdbac66158dbd72f36bab4cbbbe91d7e01639b77fbd0aa8eed0"
+    },
+    {
+      "version": "v2",
+      "content_hash": "d5d41a24d633b676f0b1719340edad21ba0d69ac80036523b7a9f58cf39c7968",
+      "comparison_hash": "0c400ec805428f2ddbb5f472ce7e51c8d7481da7a8ff8c82b9ed200df95d313d",
+      "original_content_hash": "d5d41a24d633b676f0b1719340edad21ba0d69ac80036523b7a9f58cf39c7968"
+    }
+  ],
+  "comparison": "fixed_instructions_manual_and_safety",
+  "version_order": "alternate_by_case",
+  "adversarial": false,
+  "ablation": false,
+  "arms": [
+    "full"
+  ],
+  "canary": {
+    "enabled": false,
+    "placement": "trusted_context_only",
+    "sha256": null
+  },
+  "budget_usd": "2",
+  "tariff_checked_on": "2026-11-06",
+  "max_attempts": 2,
+  "max_output_tokens": 8192,
+  "deadline_seconds": 60.0
+}

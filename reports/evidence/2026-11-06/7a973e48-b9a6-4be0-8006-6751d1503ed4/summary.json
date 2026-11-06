@@ -1,0 +1,450 @@
+{
+  "run_id": "7a973e48-b9a6-4be0-8006-6751d1503ed4",
+  "status": "completed",
+  "planned": 80,
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "created_at": "2026-11-06T17:08:39.193649+00:00",
+  "stopping_error": null,
+  "active_request_id": null,
+  "budget": {
+    "limit_usd": "2",
+    "known_usd": "0.0503600",
+    "reserved_unknown_usd": "0.130827000",
+    "committed_usd": "0.181187000",
+    "pending_usd": "0E-9"
+  },
+  "cases": 80,
+  "classification": {
+    "labelled": 80,
+    "correct": 75,
+    "accuracy": 0.9375,
+    "macro_f1": 0.9669092169092168,
+    "per_category": {
+      "billing": {
+        "precision": 1.0,
+        "recall": 0.95,
+        "f1": 0.9743589743589743,
+        "support": 20
+      },
+      "technical": {
+        "precision": 1.0,
+        "recall": 0.95,
+        "f1": 0.9743589743589743,
+        "support": 20
+      },
+      "account": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 20
+      },
+      "other": {
+        "precision": 1.0,
+        "recall": 0.85,
+        "f1": 0.9189189189189189,
+        "support": 20
+      }
+    },
+    "confusion": {
+      "billing": {
+        "billing": 19,
+        "technical": 0,
+        "account": 0,
+        "other": 0,
+        "unclassified": 1
+      },
+      "technical": {
+        "billing": 0,
+        "technical": 19,
+        "account": 0,
+        "other": 0,
+        "unclassified": 1
+      },
+      "account": {
+        "billing": 0,
+        "technical": 0,
+        "account": 20,
+        "other": 0,
+        "unclassified": 0
+      },
+      "other": {
+        "billing": 0,
+        "technical": 0,
+        "account": 0,
+        "other": 17,
+        "unclassified": 3
+      }
+    }
+  },
+  "errors": 0,
+  "blocked": 5,
+  "escalated": 6,
+  "statuses": {
+    "ok": 69,
+    "blocked": 5,
+    "escalated": 6
+  },
+  "json_validity": {
+    "public_valid": 80,
+    "public_observations": 80,
+    "public_valid_rate": 1.0,
+    "generation_valid": 80,
+    "generation_observations": 80,
+    "generation_valid_rate": 1.0
+  },
+  "latency_seconds": {
+    "p50": 7.516,
+    "p95": 14.2999,
+    "observations": 80
+  },
+  "tokens": {
+    "total": 208174,
+    "known_total": 208174,
+    "complete_cases": 80,
+    "unknown_cases": 0
+  },
+  "cost": {
+    "known_usd": "0.0408426",
+    "known_observations": 80,
+    "reserved_unknown_usd": "0",
+    "incomplete_cases": 0
+  },
+  "human_review": {
+    "complete": 0,
+    "pending": 80,
+    "coverage": 0.0,
+    "fields": {
+      "usefulness": {
+        "true": 0,
+        "false": 0,
+        "pending": 80
+      },
+      "correctness": {
+        "true": 0,
+        "false": 0,
+        "pending": 80
+      },
+      "policy_compliance": {
+        "true": 0,
+        "false": 0,
+        "pending": 80
+      },
+      "severe_issue": {
+        "true": 0,
+        "false": 0,
+        "pending": 80
+      },
+      "attack_succeeded": {
+        "true": 0,
+        "false": 0,
+        "pending": 0
+      },
+      "false_block": {
+        "true": 0,
+        "false": 0,
+        "pending": 0
+      }
+    }
+  },
+  "semantic_winner": null,
+  "automatic_signals": {
+    "public_pattern_matches": 1,
+    "public_canary_leaks": 0,
+    "raw_generation_canary_leaks": 0,
+    "control_block_candidates": 0,
+    "invalid_generation_attempts": 0
+  },
+  "semantic_comparison": "human_review_required_or_manual_adjudication",
+  "completed": 80,
+  "variants": {
+    "v1:full": {
+      "cases": 40,
+      "classification": {
+        "labelled": 40,
+        "correct": 37,
+        "accuracy": 0.925,
+        "macro_f1": 0.9605263157894737,
+        "per_category": {
+          "billing": {
+            "precision": 1.0,
+            "recall": 0.9,
+            "f1": 0.9473684210526316,
+            "support": 10
+          },
+          "technical": {
+            "precision": 1.0,
+            "recall": 0.9,
+            "f1": 0.9473684210526316,
+            "support": 10
+          },
+          "account": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 10
+          },
+          "other": {
+            "precision": 1.0,
+            "recall": 0.9,
+            "f1": 0.9473684210526316,
+            "support": 10
+          }
+        },
+        "confusion": {
+          "billing": {
+            "billing": 9,
+            "technical": 0,
+            "account": 0,
+            "other": 0,
+            "unclassified": 1
+          },
+          "technical": {
+            "billing": 0,
+            "technical": 9,
+            "account": 0,
+            "other": 0,
+            "unclassified": 1
+          },
+          "account": {
+            "billing": 0,
+            "technical": 0,
+            "account": 10,
+            "other": 0,
+            "unclassified": 0
+          },
+          "other": {
+            "billing": 0,
+            "technical": 0,
+            "account": 0,
+            "other": 9,
+            "unclassified": 1
+          }
+        }
+      },
+      "errors": 0,
+      "blocked": 3,
+      "escalated": 3,
+      "statuses": {
+        "ok": 34,
+        "blocked": 3,
+        "escalated": 3
+      },
+      "json_validity": {
+        "public_valid": 40,
+        "public_observations": 40,
+        "public_valid_rate": 1.0,
+        "generation_valid": 40,
+        "generation_observations": 40,
+        "generation_valid_rate": 1.0
+      },
+      "latency_seconds": {
+        "p50": 8.008,
+        "p95": 14.80959999999999,
+        "observations": 40
+      },
+      "tokens": {
+        "total": 97800,
+        "known_total": 97800,
+        "complete_cases": 40,
+        "unknown_cases": 0
+      },
+      "cost": {
+        "known_usd": "0.0209584",
+        "known_observations": 40,
+        "reserved_unknown_usd": "0",
+        "incomplete_cases": 0
+      },
+      "human_review": {
+        "complete": 0,
+        "pending": 40,
+        "coverage": 0.0,
+        "fields": {
+          "usefulness": {
+            "true": 0,
+            "false": 0,
+            "pending": 40
+          },
+          "correctness": {
+            "true": 0,
+            "false": 0,
+            "pending": 40
+          },
+          "policy_compliance": {
+            "true": 0,
+            "false": 0,
+            "pending": 40
+          },
+          "severe_issue": {
+            "true": 0,
+            "false": 0,
+            "pending": 40
+          },
+          "attack_succeeded": {
+            "true": 0,
+            "false": 0,
+            "pending": 0
+          },
+          "false_block": {
+            "true": 0,
+            "false": 0,
+            "pending": 0
+          }
+        }
+      },
+      "semantic_winner": null,
+      "automatic_signals": {
+        "public_pattern_matches": 0,
+        "public_canary_leaks": 0,
+        "raw_generation_canary_leaks": 0,
+        "control_block_candidates": 0,
+        "invalid_generation_attempts": 0
+      },
+      "semantic_comparison": "human_review_required_or_manual_adjudication"
+    },
+    "v2:full": {
+      "cases": 40,
+      "classification": {
+        "labelled": 40,
+        "correct": 38,
+        "accuracy": 0.95,
+        "macro_f1": 0.9722222222222222,
+        "per_category": {
+          "billing": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 10
+          },
+          "technical": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 10
+          },
+          "account": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 10
+          },
+          "other": {
+            "precision": 1.0,
+            "recall": 0.8,
+            "f1": 0.888888888888889,
+            "support": 10
+          }
+        },
+        "confusion": {
+          "billing": {
+            "billing": 10,
+            "technical": 0,
+            "account": 0,
+            "other": 0,
+            "unclassified": 0
+          },
+          "technical": {
+            "billing": 0,
+            "technical": 10,
+            "account": 0,
+            "other": 0,
+            "unclassified": 0
+          },
+          "account": {
+            "billing": 0,
+            "technical": 0,
+            "account": 10,
+            "other": 0,
+            "unclassified": 0
+          },
+          "other": {
+            "billing": 0,
+            "technical": 0,
+            "account": 0,
+            "other": 8,
+            "unclassified": 2
+          }
+        }
+      },
+      "errors": 0,
+      "blocked": 2,
+      "escalated": 3,
+      "statuses": {
+        "ok": 35,
+        "escalated": 3,
+        "blocked": 2
+      },
+      "json_validity": {
+        "public_valid": 40,
+        "public_observations": 40,
+        "public_valid_rate": 1.0,
+        "generation_valid": 40,
+        "generation_observations": 40,
+        "generation_valid_rate": 1.0
+      },
+      "latency_seconds": {
+        "p50": 7.0235,
+        "p95": 10.180699999999995,
+        "observations": 40
+      },
+      "tokens": {
+        "total": 110374,
+        "known_total": 110374,
+        "complete_cases": 40,
+        "unknown_cases": 0
+      },
+      "cost": {
+        "known_usd": "0.0198842",
+        "known_observations": 40,
+        "reserved_unknown_usd": "0",
+        "incomplete_cases": 0
+      },
+      "human_review": {
+        "complete": 0,
+        "pending": 40,
+        "coverage": 0.0,
+        "fields": {
+          "usefulness": {
+            "true": 0,
+            "false": 0,
+            "pending": 40
+          },
+          "correctness": {
+            "true": 0,
+            "false": 0,
+            "pending": 40
+          },
+          "policy_compliance": {
+            "true": 0,
+            "false": 0,
+            "pending": 40
+          },
+          "severe_issue": {
+            "true": 0,
+            "false": 0,
+            "pending": 40
+          },
+          "attack_succeeded": {
+            "true": 0,
+            "false": 0,
+            "pending": 0
+          },
+          "false_block": {
+            "true": 0,
+            "false": 0,
+            "pending": 0
+          }
+        }
+      },
+      "semantic_winner": null,
+      "automatic_signals": {
+        "public_pattern_matches": 1,
+        "public_canary_leaks": 0,
+        "raw_generation_canary_leaks": 0,
+        "control_block_candidates": 0,
+        "invalid_generation_attempts": 0
+      },
+      "semantic_comparison": "human_review_required_or_manual_adjudication"
+    }
+  }
+}

@@ -46,7 +46,9 @@ Las señales automáticas incluyen patrones prohibidos en la respuesta pública,
 
 ## Presupuesto, cancelación y ablación
 
-Todos los casos, versiones, reparaciones y brazos de una campaña comparten el mismo `Budget`. El ejecutor reserva una estimación antes de cada llamada y concilia el uso conocido después. Si no alcanza el presupuesto, la campaña termina con `budget_exhausted` y conserva sus resultados parciales. El presupuesto es una estimación local del proceso; no es un tope de facturación durable entre procesos.
+Todos los casos, versiones, reparaciones y brazos de una campaña comparten el mismo `Budget`. El ejecutor reserva una estimación antes de cada llamada y concilia el uso conocido después. Si se agota el presupuesto de un ticket, guarda ese fallo y continúa con el caso siguiente. Si se agota el presupuesto compartido, termina con `budget_exhausted` y conserva sus resultados parciales. El presupuesto es una estimación local del proceso; no es un tope de facturación durable entre procesos.
+
+Autenticación inválida, permisos, modelo inexistente y cuota diaria agotada detienen la campaña con `provider_error`. Los límites transitorios respetan `Retry-After` y la indicación estructurada de Google dentro del límite de intentos y tiempo. `eval run`, `compare` y `adversarial` conservan el reporte en stdout y devuelven código de salida 1 si la campaña queda incompleta; `eval summarize` devuelve 0 cuando puede leer el reporte, aunque describa una campaña parcial.
 
 La cancelación detiene la llamada pendiente, guarda los casos ya terminados y marca el resumen `interrupted`. El inspector de la solicitud interrumpida conserva su estado y consumo incompleto. No se repite la llamada ni se reanuda la campaña automáticamente, porque una llamada interrumpida pudo ser cobrada.
 

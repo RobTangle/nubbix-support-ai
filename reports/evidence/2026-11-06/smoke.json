@@ -1,0 +1,18 @@
+[
+  {
+    "provider": "openai",
+    "request_id": "7d2d8012-2107-4a30-a8a7-0ca45544b7d5",
+    "status": "ok",
+    "passed": true,
+    "known_cost_usd": "0.0002991",
+    "usage_complete": true
+  },
+  {
+    "provider": "google",
+    "request_id": "dfab3eae-6d92-4338-9c2f-974120ece0bb",
+    "status": "ok",
+    "passed": true,
+    "known_cost_usd": "0.0008712",
+    "usage_complete": true
+  }
+]

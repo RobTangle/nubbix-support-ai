@@ -1,0 +1,12 @@
+{
+  "status": "error",
+  "code": "invalid_request",
+  "request_id": "54b446aa-3e5a-4a06-a313-3fde945a5ac5",
+  "observations": [
+    {
+      "http_status": 400,
+      "deadline_rejected": true,
+      "minimum_seconds": 10
+    }
+  ]
+}

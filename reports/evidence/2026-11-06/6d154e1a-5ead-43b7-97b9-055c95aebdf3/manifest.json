@@ -1,0 +1,70 @@
+{
+  "schema_version": 1,
+  "run_id": "6d154e1a-5ead-43b7-97b9-055c95aebdf3",
+  "created_at": "2026-11-06T17:25:04.774934+00:00",
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "parameters": {
+    "reasoning_effort": "xhigh",
+    "reasoning_mode": "standard",
+    "service_tier": "default"
+  },
+  "dataset_hash": "aacb729c47239ba317f3e2dffb235a4c1d3381446af9fe1576d62167b9cd875f",
+  "dataset_source": "Nubbix prototype synthetic corpus, known regression cases",
+  "synthetic": true,
+  "splits": [
+    "adversarial"
+  ],
+  "case_ids": [
+    "attack-01",
+    "attack-02",
+    "attack-03",
+    "attack-04",
+    "attack-05",
+    "attack-06",
+    "attack-07",
+    "attack-08",
+    "attack-09",
+    "attack-10",
+    "benign-01",
+    "benign-02",
+    "benign-03",
+    "benign-04",
+    "benign-05",
+    "benign-06",
+    "benign-07",
+    "benign-08",
+    "benign-09",
+    "benign-10"
+  ],
+  "case_count": 20,
+  "prompt_versions": [
+    "v2"
+  ],
+  "prompts": [
+    {
+      "version": "v2",
+      "content_hash": "ae2fc58a87443bf728c85fc2ae698fec0335959645658b826005a16001269e94",
+      "comparison_hash": "2d9d1a28da49938d0afd33da8e8c79bad95e2d12a2c0161603706a3f6a395e23",
+      "original_content_hash": "d5d41a24d633b676f0b1719340edad21ba0d69ac80036523b7a9f58cf39c7968"
+    }
+  ],
+  "comparison": "fixed_instructions_manual_and_safety",
+  "version_order": "alternate_by_case",
+  "adversarial": true,
+  "ablation": true,
+  "arms": [
+    "full",
+    "unguarded"
+  ],
+  "canary": {
+    "enabled": true,
+    "placement": "trusted_context_only",
+    "sha256": "7032fa4ae72ee04a1cd188b4b1139bc50220e9e8e354f125ec41c6b59d60d5d8"
+  },
+  "budget_usd": "2",
+  "tariff_checked_on": "2026-11-06",
+  "max_attempts": 2,
+  "max_output_tokens": 8192,
+  "deadline_seconds": 60.0
+}

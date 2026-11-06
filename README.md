@@ -6,7 +6,7 @@ CLI, API y laboratorio local implementados. Las pruebas de software usan transpo
 
 ## Objetivo
 
-Ayudar a un agente de soporte a responder consultas de facturación, problemas técnicos, gestión de cuentas y otros asuntos. Cada propuesta seguirá un contrato JSON estable y pasará por controles de entrada y salida antes de presentarse para revisión humana.
+Ayudar a un agente de soporte a responder consultas de facturación, problemas técnicos, gestión de cuentas y otros asuntos. Cada propuesta sigue un contrato JSON estable y pasa por controles de entrada y salida antes de presentarse para revisión humana.
 
 ## Funcionalidades
 
@@ -36,7 +36,7 @@ uv run --locked nubbix web
 
 El laboratorio queda en [localhost:8000](http://127.0.0.1:8000), con documentación HTTP en `/docs`. Permite probar tickets, ver etapas e intentos en vivo, inspeccionar prompts y respuestas, ejecutar campañas y revisar sus resultados.
 
-La CLI escribe sólo los cuatro campos públicos en stdout: `answer`, `confidence`, `category` y `actions`. Los errores operativos usan stderr y un código de salida no exitoso.
+El comando `respond` escribe sólo los cuatro campos públicos en stdout: `answer`, `confidence`, `category` y `actions`. Los errores operativos usan stderr y un código de salida no exitoso.
 
 Sin uv, se puede crear un entorno virtual, instalar `requirements.txt` y luego el proyecto con `python -m pip install --no-deps -e .`. La entrada equivalente es `python -m nubbix_support_ai`.
 
@@ -66,6 +66,8 @@ Estos comandos consumen API. `--max-cost-usd` permite fijar el presupuesto de un
 
 Los errores y abstenciones permanecen en los denominadores. Utilidad, corrección y respeto de políticas tienen una rúbrica de revisión; valores pendientes no cuentan como aprobaciones. El corpus es sintético y conocido de regresión, no una muestra representativa de clientes ni un holdout nuevo.
 
+Las [mediciones iniciales](docs/results.md) incluyen campañas reales, configuración y cobertura: OpenAI obtuvo 38/40 clasificaciones correctas en `test` con v2; Gemini se verificó con una muestra reducida tras límites de cuota. La revisión semántica permanece pendiente.
+
 ## Arquitectura y documentación
 
 La aplicación utiliza Python, FastAPI, Pydantic y los SDK oficiales de ambos proveedores. El laboratorio se sirve desde la misma aplicación con HTML, CSS y JavaScript, sin una compilación frontend independiente.
@@ -76,6 +78,7 @@ La [documentación de arquitectura](docs/architecture.md) describe el flujo, las
 - [Versionado de prompts](docs/prompting.md).
 - [Dataset y procedencia](docs/dataset.md).
 - [Métricas, comparación y revisión](docs/evaluation.md).
+- [Mediciones y evidencia](docs/results.md).
 
 ## Verificar el software
 
@@ -89,6 +92,6 @@ La suite no requiere claves y restringe conexiones a loopback para soportar el e
 
 ## Datos y alcance
 
-Nubbix es un SaaS ficticio utilizado como escenario de soporte. El manual y los casos serán sintéticos. Las acciones se sugieren para una persona: el asistente no ejecutará reintegros ni modificará cuentas.
+Nubbix es un SaaS ficticio utilizado como escenario de soporte. El manual y los casos son sintéticos. Las acciones se sugieren para una persona: el asistente no ejecuta reintegros ni modifica cuentas.
 
 Las credenciales y el historial de ejecuciones permanecen fuera del repositorio. Los resultados reales se publican únicamente con su configuración, denominadores y limitaciones; una suite de software aprobada no demuestra calidad semántica ni resistencia completa a ataques.

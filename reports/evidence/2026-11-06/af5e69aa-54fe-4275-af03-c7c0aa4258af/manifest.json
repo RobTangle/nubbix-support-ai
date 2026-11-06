@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "run_id": "af5e69aa-54fe-4275-af03-c7c0aa4258af",
+  "created_at": "2026-11-06T17:08:39.936682+00:00",
+  "provider": "google",
+  "model": "gemini-3.5-flash-lite",
+  "parameters": {
+    "thinking_level": "MINIMAL",
+    "service_tier": "standard"
+  },
+  "dataset_hash": "402677e3eed9614e876399c9559202a3b4f2934a1554f4799667e7a65a55d4ea",
+  "dataset_source": "Nubbix prototype synthetic corpus, known regression cases",
+  "synthetic": true,
+  "splits": [
+    "dev"
+  ],
+  "case_ids": [
+    "dev-billing-01",
+    "dev-billing-02",
+    "dev-billing-03",
+    "dev-billing-04",
+    "dev-billing-05",
+    "dev-billing-06",
+    "dev-billing-07",
+    "dev-billing-08",
+    "dev-billing-09",
+    "dev-billing-10",
+    "dev-technical-01",
+    "dev-technical-02",
+    "dev-technical-03",
+    "dev-technical-04",
+    "dev-technical-05",
+    "dev-technical-06",
+    "dev-technical-07",
+    "dev-technical-08",
+    "dev-technical-09",
+    "dev-technical-10",
+    "dev-account-01",
+    "dev-account-02",
+    "dev-account-03",
+    "dev-account-04",
+    "dev-account-05",
+    "dev-account-06",
+    "dev-account-07",
+    "dev-account-08",
+    "dev-account-09",
+    "dev-account-10",
+    "dev-other-01",
+    "dev-other-02",
+    "dev-other-03",
+    "dev-other-04",
+    "dev-other-05",
+    "dev-other-06",
+    "dev-other-07",
+    "dev-other-08",
+    "dev-other-09",
+    "dev-other-10"
+  ],
+  "case_count": 40,
+  "prompt_versions": [
+    "v1",
+    "v2"
+  ],
+  "prompts": [
+    {
+      "version": "v1",
+      "content_hash": "10e5278eb1f74bdbac66158dbd72f36bab4cbbbe91d7e01639b77fbd0aa8eed0",
+      "comparison_hash": "0c400ec805428f2ddbb5f472ce7e51c8d7481da7a8ff8c82b9ed200df95d313d",
+      "original_content_hash": "10e5278eb1f74bdbac66158dbd72f36bab4cbbbe91d7e01639b77fbd0aa8eed0"
+    },
+    {
+      "version": "v2",
+      "content_hash": "d5d41a24d633b676f0b1719340edad21ba0d69ac80036523b7a9f58cf39c7968",
+      "comparison_hash": "0c400ec805428f2ddbb5f472ce7e51c8d7481da7a8ff8c82b9ed200df95d313d",
+      "original_content_hash": "d5d41a24d633b676f0b1719340edad21ba0d69ac80036523b7a9f58cf39c7968"
+    }
+  ],
+  "comparison": "fixed_instructions_manual_and_safety",
+  "version_order": "alternate_by_case",
+  "adversarial": false,
+  "ablation": false,
+  "arms": [
+    "full"
+  ],
+  "canary": {
+    "enabled": false,
+    "placement": "trusted_context_only",
+    "sha256": null
+  },
+  "budget_usd": "2",
+  "tariff_checked_on": "2026-11-06",
+  "max_attempts": 2,
+  "max_output_tokens": 8192,
+  "deadline_seconds": 60.0
+}

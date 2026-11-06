@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-06",
+  "report_contents": [
+    "manifest.json",
+    "summary.json"
+  ],
+  "raw_traces_published": false,
+  "review_status": "human_adjudication_pending",
+  "execution_note": "Development measurements; prompts and datasets are hashed per campaign. No immutable code revision was recorded for the initial campaigns.",
+  "campaigns": [
+    {
+      "provider": "openai",
+      "phase": "dev",
+      "run_id": "7a973e48-b9a6-4be0-8006-6751d1503ed4",
+      "status": "completed",
+      "directory": "7a973e48-b9a6-4be0-8006-6751d1503ed4"
+    },
+    {
+      "provider": "openai",
+      "phase": "test",
+      "run_id": "8e6eed82-a4ab-4dd1-a8c6-249f4311fc22",
+      "status": "completed",
+      "directory": "8e6eed82-a4ab-4dd1-a8c6-249f4311fc22"
+    },
+    {
+      "provider": "openai",
+      "phase": "adversarial",
+      "run_id": "6d154e1a-5ead-43b7-97b9-055c95aebdf3",
+      "status": "completed",
+      "directory": "6d154e1a-5ead-43b7-97b9-055c95aebdf3"
+    },
+    {
+      "provider": "google",
+      "phase": "dev",
+      "run_id": "af5e69aa-54fe-4275-af03-c7c0aa4258af",
+      "status": "budget_exhausted",
+      "directory": "af5e69aa-54fe-4275-af03-c7c0aa4258af"
+    },
+    {
+      "provider": "google",
+      "phase": "balanced-dev-subset",
+      "run_id": "496f9d6e-c8d5-4264-a110-72c988641572",
+      "status": "completed",
+      "directory": "496f9d6e-c8d5-4264-a110-72c988641572"
+    },
+    {
+      "provider": "google",
+      "phase": "adversarial-subset",
+      "run_id": "b58a8819-a24a-4a8a-9a8f-9ef1aa08a79f",
+      "status": "completed",
+      "directory": "b58a8819-a24a-4a8a-9a8f-9ef1aa08a79f"
+    }
+  ]
+}

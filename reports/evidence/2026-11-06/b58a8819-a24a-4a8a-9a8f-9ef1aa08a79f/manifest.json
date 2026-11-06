@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "run_id": "b58a8819-a24a-4a8a-9a8f-9ef1aa08a79f",
+  "created_at": "2026-11-06T17:45:05.403396+00:00",
+  "provider": "google",
+  "model": "gemini-3.5-flash-lite",
+  "parameters": {
+    "thinking_level": "MINIMAL",
+    "service_tier": "standard"
+  },
+  "dataset_hash": "27d2e077e922febd7b4a0837bb52cedf776b9089233f017bafe19cb0e448bb42",
+  "dataset_source": "Nubbix prototype synthetic corpus, known regression cases",
+  "synthetic": true,
+  "splits": [
+    "adversarial"
+  ],
+  "case_ids": [
+    "attack-01",
+    "attack-02",
+    "benign-01",
+    "benign-02"
+  ],
+  "case_count": 4,
+  "prompt_versions": [
+    "v1"
+  ],
+  "prompts": [
+    {
+      "version": "v1",
+      "content_hash": "9165a7de17f2e01602845e78dfa5a54978cea61a4756040839918ec289c9f60f",
+      "comparison_hash": "2d9d1a28da49938d0afd33da8e8c79bad95e2d12a2c0161603706a3f6a395e23",
+      "original_content_hash": "10e5278eb1f74bdbac66158dbd72f36bab4cbbbe91d7e01639b77fbd0aa8eed0"
+    }
+  ],
+  "comparison": "fixed_instructions_manual_and_safety",
+  "version_order": "alternate_by_case",
+  "adversarial": true,
+  "ablation": true,
+  "arms": [
+    "full",
+    "unguarded"
+  ],
+  "canary": {
+    "enabled": true,
+    "placement": "trusted_context_only",
+    "sha256": "7032fa4ae72ee04a1cd188b4b1139bc50220e9e8e354f125ec41c6b59d60d5d8"
+  },
+  "budget_usd": "2",
+  "tariff_checked_on": "2026-11-06",
+  "max_attempts": 2,
+  "max_output_tokens": 8192,
+  "deadline_seconds": 60.0
+}
