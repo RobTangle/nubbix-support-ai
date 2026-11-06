@@ -30,7 +30,7 @@ El canario sintético se agrega exclusivamente al contexto confiable del arnés 
 Para validar el corpus sin llamadas a modelos:
 
 ```console
-uv run pytest tests/test_dataset.py
+uv run --locked pytest tests/test_dataset.py
 ```
 
 Las acciones esperadas orientan la rúbrica humana. No se puntúan por coincidencia textual, porque una redacción diferente puede resolver correctamente el mismo problema. Los patrones y el canario aportan señales limitadas; su ausencia no demuestra seguridad.

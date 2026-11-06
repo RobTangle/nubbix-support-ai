@@ -27,7 +27,7 @@ Una modificación simultánea de manual y seguridad es una comparación de pipel
 2. Modificar los YAML, conservando los recursos dentro de esa carpeta.
 3. Registrar el ID y su etiqueta en `registry.yaml`.
 4. Explicar motivo, cambio e hipótesis en `prompts/CHANGELOG.md`.
-5. Ejecutar `nubbix prompts check` y evaluar primero en `dev`.
+5. Ejecutar `uv run --locked nubbix prompts check` y evaluar primero en `dev`. Sin uv, usar el Python del entorno según la [guía de terminales](setup.md), seguido de `-m nubbix_support_ai prompts check`.
 
 No es necesario modificar Python, enums de CLI ni métricas. El laboratorio descubre las versiones del registro al iniciar; reiniciarlo recarga los recursos. No editar silenciosamente una versión utilizada por un reporte: una corrida antigua debe seguir siendo identificable por su contenido.
 

@@ -2,11 +2,15 @@
 
 El runner ejecuta el mismo `SupportService.run` utilizado por CLI y HTTP. Procesa los casos secuencialmente y conserva una carpeta nueva por campaña. Abrir un reporte existente no ejecuta llamadas y una campaña interrumpida no se reanuda automáticamente.
 
+Desde la raíz del repositorio, con uv instalado, los comandos son iguales en PowerShell, CMD, Git Bash y Bash/Zsh:
+
 ```console
-nubbix eval run --provider openai --prompt-version v1 --split dev
-nubbix eval compare --provider google --split test
-nubbix eval adversarial --provider openai --prompt-version v1 --ablation
+uv run --locked nubbix eval run --provider openai --prompt-version v1 --split dev
+uv run --locked nubbix eval compare --provider google --split test
+uv run --locked nubbix eval adversarial --provider openai --prompt-version v1 --ablation
 ```
+
+Sin uv, usá el Python del entorno según la [guía de terminales](setup.md), seguido de `-m nubbix_support_ai eval ...`. Por ejemplo, en Git Bash: `./.venv/Scripts/python.exe -m nubbix_support_ai eval compare --provider openai --split dev`. Estos comandos llaman a las APIs; para inspeccionar sus opciones sin consumirlas, agregá `--help`.
 
 Cada campaña selecciona un proveedor, modelo y parámetros. Las comparaciones entre versiones utilizan esos mismos valores y alternan el orden de las versiones por caso: v1/v2 en el primero, v2/v1 en el segundo. El runner admite únicamente comparaciones cuyos bundles tienen el mismo `comparison_hash`, que representa instrucciones, manual, seguridad y reparación. Si esos componentes cambian, rechaza la comparación automática con `incomparable_prompt_bundles`; se pueden ejecutar campañas separadas e interpretar el contraste como una comparación de pipelines.
 
@@ -57,7 +61,7 @@ La cancelación detiene la llamada pendiente, guarda los casos ya terminados y m
 Para verificar el software sin red ni claves:
 
 ```console
-uv run pytest tests/test_dataset.py tests/test_evaluation_scoring.py tests/test_evaluation_reports.py tests/test_evaluation_runner.py
+uv run --locked pytest tests/test_dataset.py tests/test_evaluation_scoring.py tests/test_evaluation_reports.py tests/test_evaluation_runner.py
 ```
 
 El corpus `test` es conocido y mide regresión. Una mejora en estas métricas necesita revisión y validación adicional antes de extrapolarse a tickets reales.

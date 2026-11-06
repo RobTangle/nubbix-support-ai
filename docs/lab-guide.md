@@ -2,13 +2,24 @@
 
 El laboratorio permite probar tickets, comparar versiones de prompt y revisar el flujo que produjo cada resultado. FastAPI sirve la API y los archivos HTML, CSS y JavaScript locales; no hace falta Node ni un CDN.
 
-Desde la raíz del checkout, con las dependencias y una clave de proveedor configuradas:
+Desde la raíz del checkout, con las dependencias y una clave de proveedor configuradas. Con uv disponible, el comando es igual en PowerShell, CMD, Git Bash y Bash/Zsh:
 
 ```console
-uv run nubbix web
+uv run --locked nubbix web
 ```
 
-Abrí [el laboratorio local](http://127.0.0.1:8000). Para elegir otro puerto, usá `uv run nubbix web --port 8080`. El comando escucha en `127.0.0.1` con un proceso. Abrir la página, navegar por el historial o consultar reportes no llama a un modelo. Cada proveedor funciona con su propia clave; el catálogo informa disponibilidad sin devolver credenciales al navegador.
+Si uv no está disponible pero `.venv` ya está instalado, usá la fila de tu shell:
+
+| Shell y sistema | Iniciar el laboratorio |
+| --- | --- |
+| PowerShell en Windows | `.\.venv\Scripts\python.exe -m nubbix_support_ai web` |
+| CMD en Windows | `.venv\Scripts\python.exe -m nubbix_support_ai web` |
+| Git Bash en Windows | `./.venv/Scripts/python.exe -m nubbix_support_ai web` |
+| Bash/Zsh en Linux, macOS o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
+
+Windows Terminal y VS Code usan la sintaxis del shell de la pestaña. La [guía de instalación y terminales](setup.md) explica configuración inicial, activación opcional, WSL y errores de PATH.
+
+Abrí [el laboratorio local](http://127.0.0.1:8000). Para elegir otro puerto, agregá `--port 8080` al comando de inicio; detené el servidor con `Ctrl+C`. El comando escucha en `127.0.0.1` con un proceso. Abrir la página, navegar por el historial o consultar reportes no llama a un modelo. Cada proveedor funciona con su propia clave; el catálogo informa disponibilidad sin devolver credenciales al navegador.
 
 ## Probar un ticket
 

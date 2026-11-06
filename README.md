@@ -19,17 +19,27 @@ Ayudar a un agente de soporte a responder consultas de facturación, problemas t
 
 ## Empezar
 
-Requiere Python 3.12 o superior y [uv](https://docs.astral.sh/uv/getting-started/installation/). Desde la raíz del repositorio:
+Requiere Python 3.12 o superior. La [guía de instalación y terminales](docs/setup.md) cubre PowerShell, CMD, Git Bash y Bash/Zsh en Linux, macOS o WSL. En Windows Terminal o VS Code, elegí los comandos según el shell abierto en esa pestaña.
 
-```powershell
+Con [uv instalado](https://docs.astral.sh/uv/getting-started/installation/), ejecutá desde la raíz del repositorio. Estos comandos sirven en todos los shells anteriores:
+
+```console
+uv --version
 uv sync --locked
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-uv run --locked nubbix prompts check
 ```
 
-En Linux/macOS, creá `.env` a partir de `.env.example` si todavía no existe. Completá únicamente las claves de los proveedores que quieras utilizar: `OPENAI_API_KEY` y/o `GEMINI_API_KEY`. La aplicación no necesita ambas para funcionar con uno solo.
+Creá `.env` sólo si todavía no existe, usando la fila correspondiente a tu shell:
 
-```powershell
+| Shell | Crear la configuración local sin sobrescribirla |
+| --- | --- |
+| PowerShell | `if (-not (Test-Path .env)) { Copy-Item .env.example .env }` |
+| CMD | `if not exist .env copy .env.example .env` |
+| Git Bash / Bash / Zsh | `if [ ! -e .env ]; then cp .env.example .env; fi` |
+
+Completá únicamente las claves de los proveedores que quieras utilizar: `OPENAI_API_KEY` y/o `GEMINI_API_KEY`. La aplicación no necesita ambas para funcionar con uno solo.
+
+```console
+uv run --locked nubbix prompts check
 uv run --locked nubbix respond --provider openai --text "Me cobraron dos veces este mes"
 uv run --locked nubbix web
 ```
@@ -38,7 +48,18 @@ El laboratorio queda en [localhost:8000](http://127.0.0.1:8000), con documentaci
 
 El comando `respond` escribe sólo los cuatro campos públicos en stdout: `answer`, `confidence`, `category` y `actions`. Los errores operativos usan stderr y un código de salida no exitoso.
 
-Sin uv, se puede crear un entorno virtual, instalar `requirements.txt` y luego el proyecto con `python -m pip install --no-deps -e .`. La entrada equivalente es `python -m nubbix_support_ai`.
+### Si `uv` no está disponible y el entorno ya existe
+
+Si `.venv` ya tiene instaladas las dependencias, podés iniciar el laboratorio directamente. No hace falta activar el entorno:
+
+| Shell y sistema | Iniciar el laboratorio |
+| --- | --- |
+| PowerShell en Windows | `.\.venv\Scripts\python.exe -m nubbix_support_ai web` |
+| CMD en Windows | `.venv\Scripts\python.exe -m nubbix_support_ai web` |
+| Git Bash en Windows | `./.venv/Scripts/python.exe -m nubbix_support_ai web` |
+| Bash/Zsh en Linux, macOS o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
+
+Detené el servidor con `Ctrl+C`. En Git Bash usá `/` en las rutas: `\` funciona como escape. Para WSL, creá un entorno Linux en un checkout separado del utilizado en Windows. La [guía completa](docs/setup.md) explica cómo instalar uv, activar opcionalmente el entorno y hacer una instalación inicial con pip.
 
 ## Modelos y consumo
 
@@ -56,7 +77,7 @@ Una consulta permitida normalmente realiza tres llamadas: revisión de entrada, 
 
 ## Evaluaciones
 
-```powershell
+```console
 uv run --locked nubbix eval compare --provider openai --split dev --prompt-versions v1 v2
 uv run --locked nubbix eval run --provider google --prompt-version v1 --split test
 uv run --locked nubbix eval adversarial --provider openai --prompt-version v1 --ablation
@@ -75,6 +96,7 @@ La aplicación utiliza Python, FastAPI, Pydantic y los SDK oficiales de ambos pr
 La [documentación de arquitectura](docs/architecture.md) describe el flujo, las responsabilidades de cada módulo y las decisiones de diseño.
 
 - [Uso del laboratorio e inspector](docs/lab-guide.md).
+- [Instalación y comandos por terminal](docs/setup.md).
 - [Versionado de prompts](docs/prompting.md).
 - [Dataset y procedencia](docs/dataset.md).
 - [Métricas, comparación y revisión](docs/evaluation.md).
@@ -82,7 +104,7 @@ La [documentación de arquitectura](docs/architecture.md) describe el flujo, las
 
 ## Verificar el software
 
-```powershell
+```console
 uv run --locked pytest
 uv run --locked ruff check src tests
 uv run --locked mypy
