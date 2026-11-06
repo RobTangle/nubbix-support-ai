@@ -1,0 +1,31 @@
+name: Python quality
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ['3.12', '3.13']
+    runs-on: ${{ matrix.os }}
+    env:
+      UV_PYTHON: ${{ matrix.python }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          version: '0.13.5'
+          python-version: ${{ matrix.python }}
+      - run: uv sync --locked
+      - run: uv run --locked pytest
+      - run: uv run --locked ruff check src tests
+      - run: uv run --locked mypy
+      - run: uv run --locked nubbix prompts check
+      - name: Verify requirements export
+        run: |
+          uv export --locked --no-dev --no-hashes --no-emit-project --no-header --output-file requirements.check.txt --quiet
+          uv run --locked python -c "from pathlib import Path; assert Path('requirements.txt').read_text() == Path('requirements.check.txt').read_text(), 'requirements export is stale'"

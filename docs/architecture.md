@@ -1,6 +1,6 @@
 # Arquitectura
 
-Este documento describe el diseño de Nubbix Support AI. La implementación de los componentes está pendiente.
+Este documento describe el flujo implementado de Nubbix Support AI y las decisiones que lo sustentan.
 
 ## Flujo de soporte
 
@@ -23,7 +23,7 @@ Un bloqueo de seguridad dará lugar a una derivación explícita. Los fallos ope
 
 ## Contrato de respuesta
 
-La respuesta pública tendrá cuatro campos. Este es un ejemplo del formato, no un resultado medido:
+La respuesta pública tiene cuatro campos. Este es un ejemplo del formato, no un resultado medido:
 
 ```json
 {
@@ -34,9 +34,9 @@ La respuesta pública tendrá cuatro campos. Este es un ejemplo del formato, no 
 }
 ```
 
-Las categorías serán `billing`, `technical`, `account` y `other`. La confianza es una estimación del modelo y no una probabilidad calibrada. Las acciones son recomendaciones para un agente humano.
+Las categorías son `billing`, `technical`, `account` y `other`. La confianza es una estimación del modelo y no una probabilidad calibrada. Las acciones son recomendaciones para un agente humano.
 
-Los metadatos de ejecución y el inspector tendrán un contrato interno separado, para conservar estable la respuesta pública.
+Los metadatos de ejecución y el inspector tienen un contrato interno separado, para conservar estable la respuesta pública.
 
 ## Responsabilidades
 
