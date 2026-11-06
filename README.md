@@ -93,14 +93,17 @@ Las [mediciones iniciales](docs/results.md) incluyen campañas reales, configura
 
 La aplicación utiliza Python, FastAPI, Pydantic y los SDK oficiales de ambos proveedores. El laboratorio se sirve desde la misma aplicación con HTML, CSS y JavaScript, sin una compilación frontend independiente.
 
-La [documentación de arquitectura](docs/architecture.md) describe el flujo, las responsabilidades de cada módulo y las decisiones de diseño.
+Para entender cómo funciona la aplicación, empezá por la arquitectura y su diagrama general del flujo de soporte. Las guías complementarias explican cada área:
 
-- [Uso del laboratorio e inspector](docs/lab-guide.md).
-- [Instalación y comandos por terminal](docs/setup.md).
-- [Versionado de prompts](docs/prompting.md).
-- [Dataset y procedencia](docs/dataset.md).
-- [Métricas, comparación y revisión](docs/evaluation.md).
-- [Mediciones y evidencia](docs/results.md).
+| Documento | Qué explica |
+| --- | --- |
+| [Arquitectura y diagrama de flujo](docs/architecture.md) | Recorrido de una consulta, responsabilidades de los módulos y decisiones de diseño. |
+| [Laboratorio e inspector](docs/lab-guide.md) | Uso de la interfaz, lectura de trazas, cancelación, historial y API. |
+| [Instalación y terminales](docs/setup.md) | Configuración y comandos para PowerShell, CMD, Git Bash y Bash/Zsh, incluido WSL. |
+| [Prompts versionados](docs/prompting.md) | Instrucciones, contexto, ejemplos, hashes y cómo agregar una versión. |
+| [Dataset y procedencia](docs/dataset.md) | Composición del corpus, etiquetas, ataques y controles benignos. |
+| [Evaluaciones](docs/evaluation.md) | Campañas, comparación, métricas, presupuestos y revisión humana. |
+| [Resultados y evidencia](docs/results.md) | Mediciones reales, cobertura y limitaciones de los resultados. |
 
 ## Verificar el software
 
