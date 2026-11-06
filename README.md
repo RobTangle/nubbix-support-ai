@@ -1,14 +1,10 @@
 # Nubbix Support AI
 
-Asistente de soporte con IA para clasificar consultas y preparar respuestas y acciones sugeridas para un equipo de atención al cliente.
+Asistente de soporte con IA para clasificar consultas de facturación, problemas técnicos, cuentas y otros asuntos, y preparar respuestas y acciones sugeridas para un equipo de atención al cliente. Las propuestas se revisan antes de mostrarse y las acciones quedan a cargo de una persona.
 
-CLI, API y laboratorio local implementados. Las pruebas de software usan transportes controlados; la calidad de los modelos se mide por separado con el runner de evaluaciones.
+[Inicio rápido](#inicio-rápido) · [Cómo funciona](#cómo-funciona) · [Documentación](#documentación)
 
-## Objetivo
-
-Ayudar a un agente de soporte a responder consultas de facturación, problemas técnicos, gestión de cuentas y otros asuntos. Cada propuesta sigue un contrato JSON estable y pasa por controles de entrada y salida antes de presentarse para revisión humana.
-
-## Funcionalidades
+## Qué permite hacer
 
 - **CLI y API:** acceso al mismo flujo de clasificación y generación.
 - **Dos proveedores:** integración independiente con OpenAI y Google.
@@ -17,16 +13,28 @@ Ayudar a un agente de soporte a responder consultas de facturación, problemas t
 - **Prompts versionados:** instrucciones, contexto y ejemplos en YAML, con changelog.
 - **Evaluaciones:** métricas de clasificación, revisión de respuestas y casos adversariales con controles benignos.
 
-## Empezar
+## Inicio rápido
 
-Requiere Python 3.12 o superior. La [guía de instalación y terminales](docs/setup.md) cubre PowerShell, CMD, Git Bash y Bash/Zsh en Linux, macOS o WSL. En Windows Terminal o VS Code, elegí los comandos según el shell abierto en esa pestaña.
+### 1. Comprobar los requisitos
 
-Con [uv instalado](https://docs.astral.sh/uv/getting-started/installation/), ejecutá desde la raíz del repositorio. Estos comandos sirven en todos los shells anteriores:
+- Python 3.12 o superior.
+- [uv](https://docs.astral.sh/uv/getting-started/installation/) para instalar las dependencias y ejecutar los comandos.
+- Una clave de OpenAI o Google Gemini para analizar tickets. Con una sola basta para usar ese proveedor.
+
+Abrí la terminal en la raíz del checkout, donde está `pyproject.toml`. En Windows Terminal o VS Code, elegí las instrucciones según el shell de la pestaña: PowerShell, CMD, Git Bash o Bash/Zsh. La [guía de instalación y terminales](docs/setup.md) incluye instalación de uv, una alternativa inicial con pip y particularidades de WSL.
+
+Si `.venv` ya está preparado y uv no está disponible, podés ir directamente a [Entorno existente sin uv](#entorno-existente-sin-uv).
+
+### 2. Instalar las dependencias
+
+Estos comandos sirven en PowerShell, CMD, Git Bash y Bash/Zsh:
 
 ```console
 uv --version
 uv sync --locked
 ```
+
+### 3. Configurar las claves
 
 Creá `.env` sólo si todavía no existe, usando la fila correspondiente a tu shell:
 
@@ -36,21 +44,22 @@ Creá `.env` sólo si todavía no existe, usando la fila correspondiente a tu sh
 | CMD | `if not exist .env copy .env.example .env` |
 | Git Bash / Bash / Zsh | `if [ ! -e .env ]; then cp .env.example .env; fi` |
 
-Completá únicamente las claves de los proveedores que quieras utilizar: `OPENAI_API_KEY` y/o `GEMINI_API_KEY`. La aplicación no necesita ambas para funcionar con uno solo.
+Abrí `.env` en tu editor y completá únicamente las claves de los proveedores que quieras utilizar: `OPENAI_API_KEY` y/o `GEMINI_API_KEY`. La aplicación no necesita ambas para funcionar con uno solo.
+
+### 4. Iniciar el laboratorio web
+
+Validá los prompts e iniciá el servidor. Estos comandos no llaman a las APIs de modelos:
 
 ```console
 uv run --locked nubbix prompts check
-uv run --locked nubbix respond --provider openai --text "Me cobraron dos veces este mes"
 uv run --locked nubbix web
 ```
 
-El laboratorio queda en [localhost:8000](http://127.0.0.1:8000), con documentación HTTP en `/docs`. Permite probar tickets, ver etapas e intentos en vivo, inspeccionar prompts y respuestas, ejecutar campañas y revisar sus resultados.
+Dejá la terminal abierta y visitá [http://127.0.0.1:8000](http://127.0.0.1:8000). Detené el servidor con `Ctrl+C`. Abrir el laboratorio, el historial o los reportes no consume API; analizar un ticket o ejecutar una evaluación sí puede generar cargos.
 
-El comando `respond` escribe sólo los cuatro campos públicos en stdout: `answer`, `confidence`, `category` y `actions`. Los errores operativos usan stderr y un código de salida no exitoso.
+### Entorno existente sin uv
 
-### Si `uv` no está disponible y el entorno ya existe
-
-Si `.venv` ya tiene instaladas las dependencias, podés iniciar el laboratorio directamente. No hace falta activar el entorno:
+Si `.venv` ya tiene instaladas las dependencias, podés iniciar el laboratorio directamente. No hace falta activar el entorno; para analizar tickets, configurá `.env` como se indica en el paso 3:
 
 | Shell y sistema | Iniciar el laboratorio |
 | --- | --- |
@@ -59,9 +68,67 @@ Si `.venv` ya tiene instaladas las dependencias, podés iniciar el laboratorio d
 | Git Bash en Windows | `./.venv/Scripts/python.exe -m nubbix_support_ai web` |
 | Bash/Zsh en Linux, macOS o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
 
-Detené el servidor con `Ctrl+C`. En Git Bash usá `/` en las rutas: `\` funciona como escape. Para WSL, creá un entorno Linux en un checkout separado del utilizado en Windows. La [guía completa](docs/setup.md) explica cómo instalar uv, activar opcionalmente el entorno y hacer una instalación inicial con pip.
+Después abrí la misma dirección del laboratorio. En Git Bash usá `/` en las rutas: `\` funciona como escape. Para WSL, creá un entorno Linux en un checkout separado del utilizado en Windows. La [guía completa](docs/setup.md) detalla la activación opcional del entorno y los errores de rutas o PATH.
 
-## Modelos y consumo
+## Primera prueba
+
+Con el laboratorio abierto y una clave configurada:
+
+1. Elegí el proveedor disponible y conservá el modelo y la versión de prompt seleccionados por la aplicación.
+2. Usá el ejemplo **Cobro duplicado** o escribí: "Veo dos cargos iguales en mi tarjeta. ¿Me ayudan a revisarlo?".
+3. Presioná **Analizar ticket**. Este paso inicia las llamadas al proveedor; el timeline muestra las etapas e intentos.
+4. Al terminar, revisá la propuesta y abrí **Ver contrato JSON**: contiene `answer`, `confidence`, `category` y `actions`. La respuesta concreta depende del modelo y sus controles.
+5. Abrí el inspector para ver los prompts, las respuestas, el consumo y las validaciones; después podés recuperar la corrida desde **Historial**.
+
+Si el flujo queda bloqueado o falla, revisá su estado y los eventos en lugar de interpretarlo como una respuesta satisfactoria. La [guía del laboratorio](docs/lab-guide.md) explica cada señal y cómo cancelar una ejecución.
+
+## Cómo funciona
+
+CLI, API y laboratorio utilizan el mismo servicio. El recorrido habitual es:
+
+**Consulta → revisión de entrada → generación → validación del JSON → revisión de salida → propuesta.**
+
+El proveedor elegido ejecuta las tres etapas que requieren un modelo: entrada, generación y salida. Los controles pueden derivar a una respuesta estática de revisión humana. Los fallos operativos se informan como errores, y el historial conserva las etapas e intentos para inspección.
+
+La aplicación utiliza Python, FastAPI, Pydantic y los SDK oficiales de ambos proveedores. FastAPI sirve también el laboratorio en HTML, CSS y JavaScript, sin una compilación frontend independiente. La [arquitectura y su diagrama de flujo](docs/architecture.md) explican las responsabilidades y las decisiones de diseño.
+
+## Otros modos de uso
+
+### CLI
+
+En otra pestaña de terminal, ejecutá una variante según la clave que hayas configurado. Con uv, la sintaxis es igual en todos los shells mencionados.
+
+OpenAI:
+
+```console
+uv run --locked nubbix respond --provider openai --text "Me cobraron dos veces este mes"
+```
+
+Google Gemini:
+
+```console
+uv run --locked nubbix respond --provider google --text "Me cobraron dos veces este mes"
+```
+
+`respond` escribe sólo los cuatro campos públicos en stdout: `answer`, `confidence`, `category` y `actions`. Los errores operativos usan stderr y un código de salida no exitoso. Estas consultas consumen API.
+
+Sin uv, usá el ejecutable de la tabla de terminales seguido de `-m nubbix_support_ai respond ...`. Por ejemplo, en Git Bash: `./.venv/Scripts/python.exe -m nubbix_support_ai respond --provider google --text "Me cobraron dos veces este mes"`.
+
+### API HTTP
+
+Con el servidor iniciado, abrí [la documentación interactiva de la API](http://127.0.0.1:8000/docs). Permite probar `POST /api/triage` desde el navegador, sin diferencias de comillas o continuaciones de línea entre shells.
+
+Solicitud de ejemplo; elegí `openai` o `google` según tu clave:
+
+```json
+{"ticket":"Me cobraron dos veces este mes","provider":"google"}
+```
+
+La respuesta de éxito tiene los mismos cuatro campos que la CLI. Ejecutar esta solicitud también consume API. La [guía del laboratorio](docs/lab-guide.md#api-del-laboratorio) documenta las rutas de streaming, historial y evaluaciones.
+
+## Configuración, modelos y consumo
+
+Estas variables se pueden definir en `.env`; los valores de la tabla son los predeterminados:
 
 | Variable | Default |
 |---|---|
@@ -75,7 +142,7 @@ Una consulta permitida normalmente realiza tres llamadas: revisión de entrada, 
 
 `xhigh` puede aumentar tokens de razonamiento y latencia; su utilidad debe contrastarse con las evaluaciones. Los costos se estiman con tarifas versionadas y tokens informados, incluyendo caché y razonamiento sin contarlos dos veces. Consumo desconocido conserva una reserva y nunca se informa como cero. El presupuesto es local al proceso/campaña y no garantiza el importe final de facturación del proveedor.
 
-## Evaluaciones
+## Evaluaciones y resultados
 
 ```console
 uv run --locked nubbix eval compare --provider openai --split dev --prompt-versions v1 v2
@@ -89,11 +156,9 @@ Los errores y abstenciones permanecen en los denominadores. Utilidad, correcció
 
 Las [mediciones iniciales](docs/results.md) incluyen campañas reales, configuración y cobertura: OpenAI obtuvo 38/40 clasificaciones correctas en `test` con v2; Gemini se verificó con una muestra reducida tras límites de cuota. La revisión semántica permanece pendiente.
 
-## Arquitectura y documentación
+## Documentación
 
-La aplicación utiliza Python, FastAPI, Pydantic y los SDK oficiales de ambos proveedores. El laboratorio se sirve desde la misma aplicación con HTML, CSS y JavaScript, sin una compilación frontend independiente.
-
-Para entender cómo funciona la aplicación, empezá por la arquitectura y su diagrama general del flujo de soporte. Las guías complementarias explican cada área:
+Para profundizar en cada área:
 
 | Documento | Qué explica |
 | --- | --- |
@@ -115,7 +180,7 @@ uv run --locked mypy
 
 La suite no requiere claves y restringe conexiones a loopback para soportar el event loop de Windows. La CI está configurada para Python 3.12/3.13 en Windows y Linux. El entorno de desarrollo se fija con `uv.lock`; `requirements.txt` se exporta desde ese lock.
 
-## Datos y alcance
+## Datos y limitaciones
 
 Nubbix es un SaaS ficticio utilizado como escenario de soporte. El manual y los casos son sintéticos. Las acciones se sugieren para una persona: el asistente no ejecuta reintegros ni modifica cuentas.
 
