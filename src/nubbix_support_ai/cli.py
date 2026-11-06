@@ -1,10 +1,12 @@
 import argparse
 import asyncio
 import json
+import signal
 import sys
-from collections.abc import Sequence
+from collections.abc import Callable, Coroutine, Sequence
 from decimal import Decimal
 from pathlib import Path
+from types import FrameType
 from typing import Any
 
 import uvicorn
@@ -15,6 +17,36 @@ from nubbix_support_ai.config import Settings
 from nubbix_support_ai.observability.costs import Budget
 from nubbix_support_ai.prompting.catalog import load_catalog
 from nubbix_support_ai.support.contracts import AppError, Ticket
+
+
+class _TerminationRequested(Exception):
+    pass
+
+
+async def _with_sigterm(
+    operation: Callable[[], Coroutine[Any, Any, dict[str, Any]]],
+) -> dict[str, Any]:
+    loop = asyncio.get_running_loop()
+    task = asyncio.current_task()
+    assert task is not None
+    received = False
+    def terminate(signum: int, frame: FrameType | None) -> None:
+        nonlocal received
+        if not received:
+            received = True
+            loop.call_soon_threadsafe(task.cancel)
+    previous = signal.signal(signal.SIGTERM, terminate)
+    try:
+        result = await operation()
+        if received:
+            raise _TerminationRequested()
+        return result
+    except asyncio.CancelledError:
+        if received:
+            raise _TerminationRequested() from None
+        raise
+    finally:
+        signal.signal(signal.SIGTERM, previous)
 
 
 def _selection(parser: argparse.ArgumentParser) -> None:
@@ -91,7 +123,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     try:
         settings = Settings.load()
         if args.command == "respond":
-            value = asyncio.run(_respond(settings, args))
+            value = asyncio.run(_with_sigterm(lambda: _respond(settings, args)))
         elif args.command == "prompts":
             catalog = load_catalog(settings.project_root)
             value = {"default": catalog.default, "baseline": catalog.baseline,
@@ -100,14 +132,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             from nubbix_support_ai.web.app import create_app
             if not 1 <= args.port <= 65535:
                 raise AppError("invalid_port")
-            uvicorn.run(create_app(settings), host="127.0.0.1", port=args.port, workers=1)
+            uvicorn.run(create_app(settings), host="127.0.0.1", port=args.port, workers=1,
+                        timeout_graceful_shutdown=5)
             return 0
         elif args.action == "summarize":
             from nubbix_support_ai.evaluation.reports import read_report
             directory = args.report.resolve()
             value = read_report(directory.parent, directory.name)
         else:
-            value = asyncio.run(_evaluate(settings, args))
+            value = asyncio.run(_with_sigterm(lambda: _evaluate(settings, args)))
             exit_code = 0 if value["summary"]["status"] == "completed" else 1
         print(json.dumps(value, ensure_ascii=False, allow_nan=False))
         return exit_code
@@ -115,9 +148,9 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(json.dumps({"error": {"code": exc.code, "request_id": exc.request_id}}), file=sys.stderr)
     except (ValidationError, ValueError):
         print(json.dumps({"error": {"code": "invalid_input_or_configuration"}}), file=sys.stderr)
-    except KeyboardInterrupt:
+    except (_TerminationRequested, KeyboardInterrupt) as exc:
         print(json.dumps({"error": {"code": "cancelled"}}), file=sys.stderr)
-        return 130
+        return 143 if isinstance(exc, _TerminationRequested) else 130
     except OSError:
         print(json.dumps({"error": {"code": "io_error"}}), file=sys.stderr)
     return 1

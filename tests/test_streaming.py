@@ -135,3 +135,35 @@ async def test_send_failure_closes_stream_even_when_asgi_uses_disconnect_excepti
         await asyncio.wait_for(app(scope, receive, send), timeout=3)
     assert runtime.store.list_runs()[0]["status"] == "cancelled"
     assert not app.state.stream_tasks
+
+
+@pytest.mark.parametrize("spec_version", ["2.3", "2.4"])
+async def test_stream_disconnect_waits_for_async_cleanup(spec_version):
+    from nubbix_support_ai.web.streaming import LabStream, stream_operation
+    started = asyncio.Event()
+    cleaned = asyncio.Event()
+    tasks = set()
+    async def work(emit):
+        try:
+            started.set()
+            await emit({"event": "waiting"})
+            await asyncio.Event().wait()
+        finally:
+            await asyncio.sleep(0.05)
+            cleaned.set()
+        return {}
+    async def receive():
+        await started.wait()
+        return {"type": "http.disconnect"}
+    async def send(message):
+        if spec_version == "2.4" and b'"type":"event"' in message.get("body", b""):
+            raise OSError("connection closed")
+    scope = {"type": "http", "asgi": {"version": "3.0", "spec_version": spec_version}}
+    response = LabStream(stream_operation(work, operation="test", tasks=tasks))
+    if spec_version == "2.4":
+        with pytest.raises(ClientDisconnect):
+            await asyncio.wait_for(response(scope, receive, send), timeout=1)
+    else:
+        await asyncio.wait_for(response(scope, receive, send), timeout=1)
+    assert cleaned.is_set()
+    assert not tasks

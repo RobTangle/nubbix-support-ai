@@ -1,3 +1,4 @@
+import asyncio
 from types import TracebackType
 from typing import Self
 
@@ -59,4 +60,9 @@ class Runtime:
 
     async def __aexit__(self, exc_type: type[BaseException] | None,
                         exc: BaseException | None, traceback: TracebackType | None) -> None:
-        await self.aclose()
+        closing = asyncio.create_task(self.aclose())
+        try:
+            await asyncio.shield(closing)
+        except asyncio.CancelledError:
+            await closing
+            raise

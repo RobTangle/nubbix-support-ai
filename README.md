@@ -57,6 +57,8 @@ uv run --locked nubbix web
 
 Dejá la terminal abierta y visitá [http://127.0.0.1:8000](http://127.0.0.1:8000). Detené el servidor con `Ctrl+C`. Abrir el laboratorio, el historial o los reportes no consume API; analizar un ticket o ejecutar una evaluación sí puede generar cargos.
 
+Al detener el servidor, las solicitudes activas tienen hasta cinco segundos para terminar. Después se cancelan las pendientes y se espera su limpieza antes de cerrar los clientes. La [guía del laboratorio](docs/lab-guide.md#cancelar-fallar-y-volver-a-intentar) detalla cómo se registra una interrupción.
+
 ### Entorno existente sin uv
 
 Si `.venv` ya tiene instaladas las dependencias, podés iniciar el laboratorio directamente. No hace falta activar el entorno; para analizar tickets, configurá `.env` como se indica en el paso 3:
@@ -111,6 +113,8 @@ uv run --locked nubbix respond --provider google --text "Me cobraron dos veces e
 ```
 
 `respond` escribe sólo los cuatro campos públicos en stdout: `answer`, `confidence`, `category` y `actions`. Los errores operativos usan stderr y un código de salida no exitoso. Estas consultas consumen API.
+
+En `respond` y las campañas de evaluación, `Ctrl+C` cancela con código de salida `130`; una señal `SIGTERM` capturable usa `143`. Ambos esperan la limpieza y conservan los registros parciales. Consultá [cierre y señales según el sistema](docs/setup.md#detener-procesos-y-consultar-el-código-de-salida).
 
 Sin uv, usá el ejecutable de la tabla de terminales seguido de `-m nubbix_support_ai respond ...`. Por ejemplo, en Git Bash: `./.venv/Scripts/python.exe -m nubbix_support_ai respond --provider google --text "Me cobraron dos veces este mes"`.
 

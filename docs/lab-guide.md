@@ -58,7 +58,9 @@ El stream transmite eventos de etapas y el resultado final. No transmite tokens 
 
 **Cancelar** cierra la conexión y cancela el trabajo pendiente. La desconexión del navegador tiene el mismo efecto. La traza y la métrica registran lo que alcanzó a ocurrir. Si una llamada empezó y no se conoce su consumo, se conserva una reserva estimada y el uso queda incompleto; no se muestra como gasto cero.
 
-El cierre no es instantáneo: la interfaz puede consultar snapshots del inspector durante un breve período para mostrar el estado final. Esas lecturas no generan llamadas al modelo. Si sólo existe un snapshot en curso, la interfaz lo advierte; actualizá **Historial** para ver su último estado.
+Al detener `nubbix web` con `Ctrl+C` o un `SIGTERM` capturable, el servidor deja de aceptar conexiones y da hasta cinco segundos a las solicitudes activas para terminar. Después cancela las pendientes, tanto en `/api/triage` como en los streams de tickets y evaluaciones. Espera su limpieza antes de cerrar los clientes SDK; por eso el cierre total puede superar los cinco segundos. Si la solicitud se cancela, la conexión puede cerrarse sin respuesta final: consultá el historial o el reporte parcial al reiniciar el laboratorio. Los límites de señales y cierres forzados están en la [guía de terminales](setup.md#detener-procesos-y-consultar-el-código-de-salida).
+
+Al cancelar un análisis desde la web, la interfaz puede consultar snapshots del inspector durante un breve período para mostrar el estado final. Esas lecturas no generan llamadas al modelo. Si sólo existe un snapshot en curso, la interfaz lo advierte; actualizá **Historial** para ver su último estado.
 
 No hay reanudación ni repetición automática de campañas o tickets interrumpidos. Volver a presionar el botón inicia trabajo nuevo y puede generar cargos adicionales. Los retries de una etapa pertenecen al mismo ticket y aparecen en su traza.
 

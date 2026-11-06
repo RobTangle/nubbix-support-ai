@@ -1,13 +1,13 @@
 import asyncio
 import json
 from collections.abc import AsyncGenerator, Awaitable, Callable
-from contextlib import suppress
 from typing import Any
 
 from fastapi.responses import StreamingResponse
 from starlette.types import Receive, Scope, Send
 
 from nubbix_support_ai.support.contracts import AppError
+from nubbix_support_ai.web.lifecycle import cancel_and_drain
 
 StreamWork = Callable[[Callable[[dict[str, Any]], Awaitable[None]]], Awaitable[dict[str, Any]]]
 
@@ -59,6 +59,4 @@ async def stream_operation(work: StreamWork, *, operation: str, queue_size: int 
             if item["type"] in {"result", "error"}:
                 break
     finally:
-        task.cancel()
-        with suppress(asyncio.CancelledError):
-            await task
+        await cancel_and_drain(task)

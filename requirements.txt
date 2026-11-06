@@ -6,6 +6,7 @@ anyio==4.16.0
     # via
     #   google-genai
     #   httpx
+    #   nubbix-support-ai
     #   openai
     #   starlette
 certifi==2026.10.23

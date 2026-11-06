@@ -81,7 +81,19 @@ Los hashes del contenido efectivo y el changelog permiten relacionar una ejecuci
 
 El contenido del historial y las credenciales quedan fuera de Git. La persistencia mediante archivos es suficiente para el alcance local; no se requiere una base de datos ni un servicio externo de trazas.
 
-El timeline muestra eventos de las etapas e intentos. La respuesta pública sólo se presenta después de completar la validación y los controles de salida. Tanto `/api/triage` como los streams supervisan la conexión: una desconexión cancela y espera el trabajo pendiente. El cierre del servidor también cancela las tareas activas antes de cerrar los clientes SDK.
+El timeline muestra eventos de las etapas e intentos. La respuesta pública sólo se presenta después de completar la validación y los controles de salida. Tanto `/api/triage` como los streams supervisan la conexión: una desconexión cancela y espera el trabajo pendiente.
+
+### Cancelación y cierre de recursos
+
+El servicio usa la cancelación nativa de tareas de `asyncio`. `CancelledError` atraviesa las etapas y los adaptadores sin activar reintentos. Los bloques de limpieza registran el estado `cancelled`, concilian el presupuesto y guardan el inspector; las evaluaciones conservan los casos terminados y su resumen parcial.
+
+La CLI instala temporalmente un handler de `SIGTERM` alrededor de `respond` y `eval run/compare/adversarial`. La primera señal solicita cancelar la tarea principal; las siguientes dejan terminar su limpieza. El handler anterior se restaura al salir. `asyncio.run` conserva el manejo de `SIGINT`: la CLI traduce las interrupciones a stderr sanitizado y códigos `143` y `130`, respectivamente. El cierre de `Runtime` se ejecuta en una tarea protegida con `asyncio.shield` y se espera incluso si la primera señal llega durante el cierre de clientes.
+
+El servidor configura `timeout_graceful_shutdown=5` en Uvicorn. Primero deja de aceptar conexiones y espera las solicitudes activas durante esa ventana. Después cancela las pendientes; el ciclo de vida de la aplicación drena el trabajo antes de cerrar los clientes SDK. Los cinco segundos limitan la espera de solicitudes, no la duración total del cierre con persistencia y limpieza.
+
+Las rutas y el ciclo de vida comparten `web/lifecycle.py`: solicita la cancelación una sola vez y espera las tareas bajo un `CancelScope` protegido de AnyIO, la biblioteca que ya usa Starlette. Esto evita que el cierre del stream y el del servidor interrumpan otra vez una limpieza async en curso. La protección se limita al drenaje; el procesamiento sigue siendo cancelable.
+
+Las integraciones de servidor usan Uvicorn real con sockets locales efímeros y proveedores controlados: verifican una solicitud que termina durante la gracia, solicitudes JSON/NDJSON que se cancelan al vencerla y limpieza async demorada en streams de tickets y evaluaciones. Las desconexiones se prueban con las variantes de ASGI 2.3 y 2.4. Las pruebas de CLI entregan señales al proceso y verifican códigos de salida, restauración de handlers, reportes parciales y cierre de recursos. No requieren claves ni llaman a modelos. La [guía de terminales](setup.md#detener-procesos-y-consultar-el-código-de-salida) explica los límites del cierre forzado y las diferencias de Windows.
 
 ## Evaluación y límites
 

@@ -12,6 +12,7 @@ from starlette.requests import ClientDisconnect
 from nubbix_support_ai.bootstrap import Runtime
 from nubbix_support_ai.observability.events import FlowEvent
 from nubbix_support_ai.support.contracts import ProviderName, SupportResponse, Ticket
+from nubbix_support_ai.web.lifecycle import cancel_and_drain
 from nubbix_support_ai.web.streaming import LabStream, stream_operation
 
 STATIC = Path(__file__).parent / "static"
@@ -72,9 +73,7 @@ def build_router(runtime: Runtime, tasks: set[asyncio.Task[Any]]) -> APIRouter:
                 return (await work).response
             raise ClientDisconnect()
         finally:
-            work.cancel()
-            monitor.cancel()
-            await asyncio.gather(work, monitor, return_exceptions=True)
+            await cancel_and_drain(work, monitor)
             tasks.discard(work)
 
     @router.post("/api/lab/runs/stream")

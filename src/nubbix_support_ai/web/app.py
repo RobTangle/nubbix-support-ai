@@ -12,6 +12,7 @@ from nubbix_support_ai.bootstrap import Runtime
 from nubbix_support_ai.config import Settings
 from nubbix_support_ai.support.contracts import AppError
 from nubbix_support_ai.web.evaluations import build_evaluation_router
+from nubbix_support_ai.web.lifecycle import cancel_and_drain
 from nubbix_support_ai.web.routes import STATIC, build_router
 
 
@@ -26,9 +27,7 @@ def create_app(settings: Settings, runtime: Runtime | None = None) -> FastAPI:
             yield
         finally:
             pending = tuple(tasks)
-            for task in pending:
-                task.cancel()
-            await asyncio.gather(*pending, return_exceptions=True)
+            await cancel_and_drain(*pending)
             if owns_runtime:
                 await active_runtime.aclose()
 

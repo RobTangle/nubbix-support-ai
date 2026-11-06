@@ -188,6 +188,24 @@ python3 -m venv .venv
 
 Después configurá `.env` e iniciá la aplicación con las instrucciones anteriores. Esta alternativa instala el runtime; las herramientas de desarrollo, como pytest, Ruff y mypy, se incluyen al usar `uv sync --locked`.
 
+## Detener procesos y consultar el código de salida
+
+Usá `Ctrl+C` en la terminal donde está ejecutándose la aplicación. En `web`, Uvicorn deja de aceptar conexiones y permite hasta cinco segundos para completar solicitudes activas. Al vencer ese plazo cancela las pendientes; la aplicación espera su limpieza y cierra los clientes. El cierre total puede llevar más de cinco segundos porque incluye esa limpieza.
+
+En `respond` y `eval run/compare/adversarial`, las señales cancelan el trabajo async pendiente y esperan el cierre de recursos. `Ctrl+C` (`SIGINT`) devuelve `130`; `SIGTERM` devuelve `143` cuando llega al handler de Python. La CLI escribe `{"error": {"code": "cancelled"}}` en stderr, sin respuesta normal en stdout. Las evaluaciones conservan el reporte parcial en disco y no se reanudan automáticamente. Señales `SIGTERM` repetidas durante la limpieza no vuelven a cancelarla.
+
+Para consultar el código de salida, ejecutá inmediatamente después del comando:
+
+| Shell | Consultar el código |
+| --- | --- |
+| PowerShell | `$LASTEXITCODE` |
+| CMD | `echo %ERRORLEVEL%` |
+| Git Bash / Bash / Zsh | `echo $?` |
+
+En Linux, macOS y WSL, `SIGTERM` permite solicitar este cierre desde otro proceso. En Windows, preferí `Ctrl+C` en la consola: `os.kill(pid, SIGTERM)` termina el proceso mediante `TerminateProcess`, según la [documentación de Python](https://docs.python.org/3.12/library/os.html#os.kill). Git Bash sigue usando el Python de Windows y comparte esa limitación.
+
+La cancelación es cooperativa: se procesa en los puntos de espera async, y una operación síncrona como la lectura de `--stdin` puede demorarla. Un cierre forzado del sistema operativo, como `SIGKILL` o `taskkill /F`, no permite garantizar limpieza ni persistencia. Interrumpir una llamada tampoco garantiza que el proveedor no la haya cobrado; el consumo desconocido conserva su reserva estimada.
+
 ## Problemas frecuentes
 
 | Mensaje o situación | Qué comprobar |
