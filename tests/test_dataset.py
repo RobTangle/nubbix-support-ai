@@ -1,3 +1,4 @@
+import hashlib
 import json
 from collections import Counter
 
@@ -58,3 +59,10 @@ def test_provenance_records_known_regression_corpus_and_unique_normalized_text()
         cases = load_cases(ROOT / "datasets" / filename)
         assert metadata["files"][filename]["cases"] == count
         assert len({" ".join(case.text.casefold().split()) for case in cases}) == count
+
+
+def test_provenance_hashes_match_canonical_utf8_content_across_platforms():
+    metadata = json.loads((ROOT / "datasets/metadata.json").read_text("utf-8"))
+    for filename in ("tickets.jsonl", "adversarial.jsonl"):
+        canonical = (ROOT / "datasets" / filename).read_text("utf-8").encode("utf-8")
+        assert hashlib.sha256(canonical).hexdigest() == metadata["files"][filename]["adapted_sha256"]

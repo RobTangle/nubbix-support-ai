@@ -57,11 +57,12 @@ class SupportService:
         }
         record = RunRecorder(request_id, self.store, inspection, on_event)
         record.checkpoint()
-        budget = Budget(self.settings.ticket_usd)
+        budget = Budget(self.settings.ticket_usd, scope="ticket")
         executor = StructuredExecutor(self.provider, self.settings, self.prices, record, budget,
                                       campaign_budget, record.started + self.settings.deadline_seconds,
                                       bundle.repair)
         status, error_code = "error", None
+        budget_scope = None
         response = None
         try:
             await record.emit("request.received", input_length=len(ticket.text))
@@ -106,6 +107,7 @@ class SupportService:
             raise
         except AppError as exc:
             error_code = exc.code
+            budget_scope = getattr(exc, "scope", None)
             exc.request_id = request_id
             raise
         except Exception:
@@ -119,6 +121,7 @@ class SupportService:
                 "model": self.provider.model, "prompt_version": bundle.version,
                 "prompt_hash": bundle.content_hash, "status": status,
                 "abstained": status == "blocked", "error_code": error_code,
+                "budget_scope": budget_scope,
                 "input_tokens": record.input_tokens if record.usage_complete else None,
                 "output_tokens": record.output_tokens if record.usage_complete else None,
                 "total_tokens": (record.input_tokens + record.output_tokens

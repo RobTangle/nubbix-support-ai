@@ -1,6 +1,7 @@
 from decimal import Decimal
 from pathlib import Path
 from threading import Lock
+from typing import Literal
 
 import yaml
 from pydantic import BaseModel, Field
@@ -52,10 +53,11 @@ def load_prices(project_root: Path) -> PriceCatalog:
 class Budget:
     """Conservative process-local accounting, shared by all cases in a campaign."""
 
-    def __init__(self, limit: Decimal) -> None:
+    def __init__(self, limit: Decimal, *, scope: Literal["ticket", "campaign"] = "campaign") -> None:
         if not limit.is_finite() or limit <= 0:
             raise AppError("invalid_budget")
         self.limit = limit
+        self.scope = scope
         self.known = Decimal(0)
         self.unknown = Decimal(0)
         self.pending = Decimal(0)
@@ -68,7 +70,7 @@ class Budget:
     def reserve(self, amount: Decimal) -> Decimal:
         with self._lock:
             if not amount.is_finite() or amount < 0 or self.committed + amount > self.limit:
-                raise AppError("budget_exceeded")
+                raise BudgetExceeded(self.scope)
             self.pending += amount
         return amount
 
@@ -81,3 +83,9 @@ class Budget:
                 self.unknown += reservation
             else:
                 self.known += cost
+
+
+class BudgetExceeded(AppError):
+    def __init__(self, scope: Literal["ticket", "campaign"]) -> None:
+        super().__init__("budget_exceeded")
+        self.scope = scope

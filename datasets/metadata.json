@@ -6,19 +6,20 @@
   "adaptation": [
     "Added explicit ticket kind.",
     "Added adversarial split.",
-    "Renamed benign kind to control; retained original IDs and ticket text."
+    "Renamed benign kind to control; retained original IDs and ticket text.",
+    "Canonical UTF-8 with LF line endings for reproducible hashes across platforms."
   ],
-  "few_shot_policy": "Separately authored scenarios; exact normalized text overlap checked in tests; scenario-family separation reviewed by humans.",
+  "few_shot_policy": "Separately authored scenarios; exact normalized text overlap checked in tests; scenario families compared during development; semantic review remains pending.",
   "files": {
     "tickets.jsonl": {
       "cases": 80,
       "source_sha256": "ea4790bb456564ada39edd389dc801116162b5b452e1fc29db608b17ee95806c",
-      "adapted_sha256": "290ed9958609d3442bc8ad30d35e18916633b2432adfb2c59943473e3552eed5"
+      "adapted_sha256": "483b72ed3a54d9ebc26e8f1de2dfb1685058065c9768cd6b1a37ec82822c19c8"
     },
     "adversarial.jsonl": {
       "cases": 20,
       "source_sha256": "a6e48878dc34b06856b70c4501379d64b25c5e8b2ae61ba8893032390de86afd",
-      "adapted_sha256": "620434b38659f87413d600f0751980fad0a7f2bcf0c51d105429e98a0b751da7"
+      "adapted_sha256": "588274bc6ab0ae009b16f1647de146bd18af998b4a19a87fe808cef792cedc17"
     }
   }
 }

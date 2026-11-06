@@ -6,14 +6,15 @@ from decimal import Decimal
 import pytest
 
 from nubbix_support_ai.bootstrap import Runtime
+from nubbix_support_ai.evaluation.adversarial import run_unguarded
 from nubbix_support_ai.evaluation.data import EvalCase
 from nubbix_support_ai.evaluation.reports import list_reports, read_report
 from nubbix_support_ai.evaluation.runner import run_evaluation
-from nubbix_support_ai.llm.contracts import ProviderError
-from nubbix_support_ai.observability.costs import Budget
+from nubbix_support_ai.llm.contracts import LLMReply, ProviderError
+from nubbix_support_ai.observability.costs import Budget, BudgetExceeded
 from nubbix_support_ai.prompting.catalog import PromptCatalog, Registry, VersionInfo
 from nubbix_support_ai.support.contracts import AppError, Ticket
-from tests.helpers import ALLOW, PROPOSAL, ScriptedProvider, settings_at
+from tests.helpers import ALLOW, PROPOSAL, USAGE, ScriptedProvider, settings_at
 
 
 def cases():
@@ -47,15 +48,16 @@ async def test_runner_alternates_versions_and_uses_real_service_traces(tmp_path)
 
 
 async def test_runner_preserves_errors_then_continues_with_next_case(tmp_path):
-    provider = ScriptedProvider([ProviderError("authentication_error")])
+    provider = ScriptedProvider([ProviderError("connection_error")])
     settings = settings_at(tmp_path)
     async with Runtime(settings, providers={"openai": provider}) as runtime:
         report = await run_evaluation(runtime, cases(), provider="openai", prompt_versions=["v1"])
     data = read_report(settings.reports_dir, report.run_id)
+    assert report.summary["status"] == "completed"
     assert report.summary["classification"]["accuracy"] == 0.5
     assert report.summary["errors"] == 1
     assert data["cases"][0]["request_id"]
-    assert data["cases"][0]["error_code"] == "authentication_error"
+    assert data["cases"][0]["error_code"] == "connection_error"
     assert data["cases"][0]["metrics"]["usage_complete"] is False
 
 
@@ -175,3 +177,127 @@ async def test_blocked_public_output_keeps_raw_generation_leak_as_separate_signa
     assert row["signals"]["raw_generation_canary_leaked"] is True
     assert row["signals"]["raw_generation_forbidden_pattern_matches"] == ["NUBBIX_CANARY_7F2A"]
     assert row["signals"]["human_attack_succeeded"] is None
+
+
+async def test_ticket_budget_exhaustion_preserves_campaign_and_allows_next_case(tmp_path):
+    provider = ScriptedProvider()
+    settings = settings_at(tmp_path)
+    campaign = Budget(Decimal("2"))
+    async with Runtime(settings, providers={"openai": provider}) as runtime:
+        probe = await runtime.service().run(Ticket(text="Cargo 0"))
+        reservations = []
+        for call in provider.calls:
+            payload = {"system": call.system, "messages": [
+                {"role": message.role, "content": message.content} for message in call.messages],
+                "schema": call.schema, "max_output_tokens": call.max_output_tokens}
+            reservations.append(runtime.prices.reserve_cost("openai", provider.model,
+                                 json.dumps(payload), call.max_output_tokens))
+        settings.ticket_usd = max(reservations) + Decimal(probe.metrics["known_cost_usd"])
+        provider.calls.clear()
+        provider.replies = [ProviderError("rate_limited", retryable=True)]
+        report = await run_evaluation(runtime, cases(), provider="openai", prompt_versions=["v1"],
+                                      campaign_budget=campaign)
+    rows = read_report(settings.reports_dir, report.run_id)["cases"]
+    assert report.summary["status"] == "completed"
+    assert report.summary["completed"] == 2
+    assert [row["status"] for row in rows] == ["error", "ok"]
+    assert rows[0]["error_code"] == "budget_exceeded"
+    assert rows[0]["metrics"]["budget_scope"] == "ticket"
+    assert campaign.unknown == Decimal(rows[0]["metrics"]["reserved_unknown_usd"]) > 0
+    assert campaign.known == Decimal(rows[1]["metrics"]["known_cost_usd"]) > 0
+    assert campaign.committed == campaign.known + campaign.unknown < campaign.limit
+    assert campaign.pending == 0
+    assert len(provider.calls) == 4
+
+
+@pytest.mark.parametrize("error", [BudgetExceeded("campaign"), AppError("budget_exceeded")])
+async def test_campaign_or_unscoped_budget_error_stops_evaluation(tmp_path, error):
+    provider = ScriptedProvider([error])
+    settings = settings_at(tmp_path)
+    async with Runtime(settings, providers={"openai": provider}) as runtime:
+        report = await run_evaluation(runtime, cases(), provider="openai", prompt_versions=["v1"])
+    assert report.summary["status"] == "budget_exhausted"
+    assert report.summary["completed"] == 1
+    assert len(provider.calls) == 1
+
+
+async def test_unguarded_budget_and_metrics_identify_ticket_scope(tmp_path):
+    provider = ScriptedProvider()
+    settings = settings_at(tmp_path, ticket_usd=Decimal("0.000001"))
+    async with Runtime(settings, providers={"openai": provider}) as runtime:
+        with pytest.raises(BudgetExceeded) as error:
+            await run_unguarded(runtime.service(), Ticket(text="Consulta sintética"),
+                                bundle=runtime.catalog.get("v1"), campaign_budget=Budget(Decimal("2")))
+        inspection = runtime.store.get_run(error.value.request_id)
+    assert error.value.scope == "ticket"
+    assert inspection["metrics"]["budget_scope"] == "ticket"
+    assert not provider.calls
+
+
+@pytest.mark.parametrize("incomplete", [False, True])
+async def test_unguarded_cache_subtotals_match_core_completeness(tmp_path, incomplete):
+    usage = USAGE.model_copy(update={"cache_write_input_tokens": 10})
+    reply = (ProviderError("connection_error") if incomplete
+             else LLMReply(json.dumps(PROPOSAL), usage, "gpt-6-luna"))
+    provider = ScriptedProvider([reply])
+    async with Runtime(settings_at(tmp_path), providers={"openai": provider}) as runtime:
+        try:
+            run = await run_unguarded(runtime.service(), Ticket(text="Consulta sintética"),
+                bundle=runtime.catalog.get("v1"), campaign_budget=Budget(Decimal("2")))
+        except AppError as error:
+            metrics = runtime.store.get_run(error.request_id)["metrics"]
+        else:
+            metrics = run.metrics
+    assert metrics["budget_scope"] is None
+    assert metrics["usage_complete"] is (not incomplete)
+    assert metrics["cached_input_tokens"] == (None if incomplete else 40)
+    assert metrics["cache_write_input_tokens"] == (None if incomplete else 10)
+    assert metrics["reasoning_output_tokens"] == (None if incomplete else 5)
+
+
+@pytest.mark.parametrize("error_code", [
+    "quota_exhausted", "authentication_error", "permission_denied", "model_not_found",
+])
+async def test_permanent_provider_failure_stops_campaign_and_preserves_consumption(tmp_path, error_code):
+    provider = ScriptedProvider([ALLOW, ProviderError(error_code)])
+    settings = settings_at(tmp_path)
+    campaign = Budget(Decimal("2"))
+    async with Runtime(settings, providers={"openai": provider}) as runtime:
+        report = await run_evaluation(runtime, cases(), provider="openai",
+                                      prompt_versions=["v1", "v2"], campaign_budget=campaign)
+    saved = read_report(settings.reports_dir, report.run_id)
+    assert report.summary["status"] == saved["summary"]["status"] == "provider_error"
+    assert report.summary["stopping_error"] == error_code
+    assert report.summary["completed"] == 1
+    assert report.summary["planned"] == 4
+    assert len(saved["cases"]) == 1
+    row = saved["cases"][0]
+    assert row["status"] == "error"
+    assert row["error_code"] == error_code
+    assert row["request_id"]
+    assert row["metrics"]["usage_complete"] is False
+    assert campaign.known == Decimal(row["metrics"]["known_cost_usd"]) > 0
+    assert campaign.unknown == Decimal(row["metrics"]["reserved_unknown_usd"]) > 0
+    assert report.summary["budget"]["committed_usd"] == str(campaign.committed)
+    assert campaign.pending == 0
+    assert len(provider.calls) == 2
+
+
+async def test_permanent_provider_failure_in_ablation_stops_remaining_versions_and_cases(tmp_path):
+    provider = ScriptedProvider([ALLOW, PROPOSAL, ALLOW, ProviderError("quota_exhausted")])
+    settings = settings_at(tmp_path)
+    selected = [case.model_copy(update={"kind": "control", "split": "adversarial"})
+                for case in cases()]
+    async with Runtime(settings, providers={"openai": provider}) as runtime:
+        report = await run_evaluation(runtime, selected, provider="openai",
+                                      prompt_versions=["v1", "v2"], adversarial=True, ablation=True)
+    rows = read_report(settings.reports_dir, report.run_id)["cases"]
+    assert report.summary["status"] == "provider_error"
+    assert report.summary["stopping_error"] == "quota_exhausted"
+    assert report.summary["completed"] == 2
+    assert report.summary["planned"] == 8
+    assert [row["arm"] for row in rows] == ["full", "unguarded"]
+    assert [row["status"] for row in rows] == ["ok", "error"]
+    assert rows[1]["error_code"] == "quota_exhausted"
+    assert Decimal(rows[1]["metrics"]["reserved_unknown_usd"]) > 0
+    assert len(provider.calls) == 4

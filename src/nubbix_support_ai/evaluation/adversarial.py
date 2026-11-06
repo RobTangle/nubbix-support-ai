@@ -61,11 +61,12 @@ async def run_unguarded(service: SupportService, ticket: Ticket, *, bundle: Prom
     }
     record = RunRecorder(request_id, service.store, inspection, on_event)
     record.checkpoint()
-    budget = Budget(service.settings.ticket_usd)
+    budget = Budget(service.settings.ticket_usd, scope="ticket")
     executor = StructuredExecutor(service.provider, service.settings, service.prices, record,
                                   budget, campaign_budget,
                                   record.started + service.settings.deadline_seconds, bundle.repair)
     status, error_code = "error", None
+    budget_scope = None
     response = None
     try:
         await record.emit("request.received", input_length=len(ticket.text),
@@ -86,6 +87,7 @@ async def run_unguarded(service: SupportService, ticket: Ticket, *, bundle: Prom
         raise
     except AppError as exc:
         error_code = exc.code
+        budget_scope = getattr(exc, "scope", None)
         exc.request_id = request_id
         raise
     except Exception:
@@ -99,14 +101,17 @@ async def run_unguarded(service: SupportService, ticket: Ticket, *, bundle: Prom
             "model": service.provider.model, "prompt_version": bundle.version,
             "prompt_hash": bundle.content_hash, "status": status,
             "evaluation_arm": "unguarded", "abstained": status == "blocked",
-            "error_code": error_code, "usage_complete": record.usage_complete,
+            "error_code": error_code, "budget_scope": budget_scope,
+            "usage_complete": record.usage_complete,
             "input_tokens": record.input_tokens if record.usage_complete else None,
             "output_tokens": record.output_tokens if record.usage_complete else None,
             "total_tokens": (record.input_tokens + record.output_tokens
                              if record.usage_complete else None),
             "known_input_tokens": record.input_tokens, "known_output_tokens": record.output_tokens,
-            "cached_input_tokens": record.cached_tokens,
-            "reasoning_output_tokens": record.reasoning_tokens,
+            "cached_input_tokens": record.cached_tokens if record.usage_complete else None,
+            "cache_write_input_tokens": (record.cache_write_tokens
+                                         if record.usage_complete else None),
+            "reasoning_output_tokens": record.reasoning_tokens if record.usage_complete else None,
             "known_cost_usd": str(budget.known), "reserved_unknown_usd": str(budget.unknown),
             "estimated_cost_usd": str(budget.committed),
             "latency_seconds": round(time.monotonic() - record.started, 6),

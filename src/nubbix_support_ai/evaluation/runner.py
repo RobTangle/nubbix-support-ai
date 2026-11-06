@@ -13,7 +13,7 @@ from nubbix_support_ai.bootstrap import Runtime
 from nubbix_support_ai.evaluation.adversarial import CANARY, adversarial_catalog, run_unguarded
 from nubbix_support_ai.evaluation.data import EvalCase, dataset_hash
 from nubbix_support_ai.evaluation.reports import EvaluationReport, ReportWriter
-from nubbix_support_ai.observability.costs import Budget
+from nubbix_support_ai.observability.costs import Budget, BudgetExceeded
 from nubbix_support_ai.observability.events import EventSink, FlowEvent, Scalar
 from nubbix_support_ai.support.contracts import AppError, ProviderName, SupportResponse, Ticket
 from nubbix_support_ai.support.service import SupportService
@@ -150,6 +150,7 @@ async def run_evaluation(runtime: Runtime, cases: Sequence[EvalCase], *, provide
                                       prompt_version=version, arm=arm, completed=len(writer.rows),
                                       total=planned)
                     error_code = None
+                    budget_scope = None
                     try:
                         if arm == "unguarded":
                             run = await run_unguarded(service, Ticket(text=case.text),
@@ -161,6 +162,7 @@ async def run_evaluation(runtime: Runtime, cases: Sequence[EvalCase], *, provide
                         inspection = runtime.store.get_run(run.request_id)
                     except AppError as exc:
                         error_code = exc.code
+                        budget_scope = exc.scope if isinstance(exc, BudgetExceeded) else None
                         request_id = exc.request_id or events.active_request_id
                         inspection = runtime.store.get_run(request_id) if request_id else {}
                     row = _case_row(case, version, arm, inspection, error_code,
@@ -171,12 +173,16 @@ async def run_evaluation(runtime: Runtime, cases: Sequence[EvalCase], *, provide
                                       dataset_case_id=case.id, prompt_version=version, arm=arm,
                                       completed=len(writer.rows), total=planned,
                                       status=row["status"], request_id=row["request_id"])
-                    if error_code == "budget_exceeded":
+                    if error_code == "budget_exceeded" and budget_scope != "ticket":
                         status, stopping_error = "budget_exhausted", error_code
                         break
-                if status == "budget_exhausted":
+                    if error_code in {"quota_exhausted", "authentication_error",
+                                      "permission_denied", "model_not_found"}:
+                        status, stopping_error = "provider_error", error_code
+                        break
+                if status in {"budget_exhausted", "provider_error"}:
                     break
-            if status == "budget_exhausted":
+            if status in {"budget_exhausted", "provider_error"}:
                 break
         if status == "running":
             status = "completed"

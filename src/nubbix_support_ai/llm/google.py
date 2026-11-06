@@ -5,7 +5,7 @@ from google import genai
 from google.genai import errors, types
 
 from nubbix_support_ai.llm.contracts import LLMReply, LLMRequest, ProviderError, TokenUsage
-from nubbix_support_ai.llm.errors import configure_sdk_logging, http_error
+from nubbix_support_ai.llm.errors import configure_sdk_logging, google_error
 
 
 def _usage(counts: types.GenerateContentResponseUsageMetadata | None) -> TokenUsage | None:
@@ -86,7 +86,7 @@ class GeminiProvider:
             raise
         except errors.APIError as exc:
             headers = getattr(exc.response, "headers", {})
-            raise http_error(exc.code, headers.get("retry-after")) from None
+            raise google_error(exc.code, exc.details, headers.get("retry-after")) from None
         except (httpx.TimeoutException, TimeoutError):
             raise ProviderError("timeout", retryable=True) from None
         except (httpx.NetworkError, httpx.RemoteProtocolError):

@@ -6,7 +6,7 @@ import pytest
 
 from nubbix_support_ai.bootstrap import Runtime
 from nubbix_support_ai.llm.contracts import LLMReply, ProviderError
-from nubbix_support_ai.observability.costs import Budget, load_prices
+from nubbix_support_ai.observability.costs import Budget, BudgetExceeded, load_prices
 from nubbix_support_ai.observability.storage import RunStore
 from nubbix_support_ai.support.contracts import AppError, Ticket
 from tests.helpers import ALLOW, PROPOSAL, ROOT, USAGE, ScriptedProvider, settings_at
@@ -146,6 +146,16 @@ async def test_budget_prevents_a_call_before_spending(tmp_path):
         with pytest.raises(AppError, match="budget_exceeded"):
             await runtime.service().run(Ticket(text="Consulta"))
     assert not provider.calls
+    metric = json.loads((tmp_path / "data/metrics.jsonl").read_text())
+    assert metric["budget_scope"] == "ticket"
+
+
+def test_budget_failure_identifies_the_account_that_was_exhausted():
+    for scope in ("ticket", "campaign"):
+        budget = Budget(Decimal("0.1"), scope=scope)
+        with pytest.raises(BudgetExceeded) as error:
+            budget.reserve(Decimal("0.2"))
+        assert error.value.scope == scope
 
 
 def test_costs_count_subtotals_once_and_unknown_reservations_remain_committed():

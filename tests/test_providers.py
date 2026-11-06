@@ -131,6 +131,27 @@ async def test_gemini_rate_limit_has_no_hidden_sdk_retries():
     assert len(attempts) == 1
 
 
+@pytest.mark.parametrize("details,code,retryable,delay", [
+    ([{"@type": "type.googleapis.com/google.rpc.RetryInfo", "retryDelay": "3.5s"}],
+     "rate_limited", True, 3.5),
+    ([{"@type": "type.googleapis.com/google.rpc.QuotaFailure", "violations": [
+        {"quotaId": "GenerateRequestsPerDayPerProjectPerModel-FreeTier"}]}],
+     "quota_exhausted", False, 0),
+])
+async def test_gemini_respects_structured_retry_info_and_daily_quota(details, code, retryable, delay):
+    provider = GeminiProvider("test-key", "gemini-3.5-flash-lite", transport=httpx.MockTransport(
+        lambda _: httpx.Response(429, json={"error": {"code": 429,
+            "status": "RESOURCE_EXHAUSTED", "message": "private diagnostics", "details": details}})))
+    try:
+        with pytest.raises(ProviderError) as error:
+            await provider.complete(REQUEST)
+    finally:
+        await provider.aclose()
+    assert error.value.code == code
+    assert error.value.retryable is retryable
+    assert error.value.retry_after == delay
+
+
 @pytest.mark.parametrize("provider_name", ["openai", "google"])
 async def test_sdk_debug_logging_does_not_publish_request_content(provider_name, caplog):
     caplog.set_level(logging.DEBUG)
