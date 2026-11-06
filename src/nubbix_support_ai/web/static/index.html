@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Nubbix · Laboratorio de soporte</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script type="module" src="/static/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main-content">Ir al contenido</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Navegación del laboratorio">
+      <a class="brand" href="/" aria-label="Nubbix, inicio">
+        <svg viewBox="0 0 40 40" width="38" height="38" aria-hidden="true"><rect width="40" height="40" rx="12" fill="currentColor"/><path d="M12 27V13h5l7 10V13h4v14h-5l-7-10v10z" fill="#fff"/></svg>
+        <span>nubbix<span class="brand-sub">SUPPORT AI / LAB</span></span>
+      </a>
+      <div class="nav-label">ESPACIO DE TRABAJO</div>
+      <nav class="primary-nav" aria-label="Vistas">
+        <button class="nav-item active" data-view="test" aria-current="page"><span class="nav-icon" aria-hidden="true">↗</span>Probar un ticket<span class="nav-number">01</span></button>
+        <button class="nav-item" data-view="evaluations"><span class="nav-icon" aria-hidden="true">▦</span>Evaluaciones<span class="nav-number">02</span></button>
+        <button class="nav-item" data-view="history"><span class="nav-icon" aria-hidden="true">↺</span>Historial<span class="nav-number">03</span></button>
+      </nav>
+      <div class="sidebar-note"><span class="local-dot" aria-hidden="true"></span><strong>Todo sucede en tu equipo</strong><p>Las trazas se conservan localmente. Cada ejecución usa el proveedor seleccionado.</p></div>
+      <div class="sidebar-footer">ENTENDER · MEDIR · MEJORAR<span>Laboratorio personal · v0.1</span></div>
+    </aside>
+    <div class="workspace">
+      <div class="topbar"><span class="breadcrumb">Nubbix <span>/</span> Laboratorio</span><span class="environment"><span class="local-dot" aria-hidden="true"></span>LOCAL · UN PROCESO</span></div>
+      <main id="main-content" tabindex="-1">
+        <header class="page-header"><div><p class="eyebrow" id="view-eyebrow">DEL TICKET A LA RESPUESTA</p><h1 id="view-title">Soporte que podés inspeccionar.</h1><p class="page-description" id="view-description">Probá un caso y seguí cada decisión del flujo, de principio a fin.</p></div><span class="configuration-pill" id="configuration-state">Cargando configuración…</span></header>
+        <div class="notice" id="global-notice" role="status" aria-live="polite" hidden></div>
+        <section id="view-test" class="view" aria-label="Probar un ticket">
+          <div class="flow-strip" aria-label="Etapas del flujo"><div><span>01</span><strong>Revisión de entrada</strong><small>Contexto y políticas</small></div><span class="flow-arrow" aria-hidden="true">→</span><div><span>02</span><strong>Generación validada</strong><small>Contrato de cuatro campos</small></div><span class="flow-arrow" aria-hidden="true">→</span><div><span>03</span><strong>Revisión de salida</strong><small>Respuesta y acciones</small></div></div>
+          <div class="test-grid">
+            <section class="card input-card" aria-labelledby="ticket-heading">
+              <div class="card-heading"><div><p class="eyebrow">ENTRADA</p><h2 id="ticket-heading">¿Qué necesita tu cliente?</h2></div><span class="small-tag">TICKET</span></div>
+              <form id="ticket-form">
+                <div class="selection-grid"><label>Proveedor<select id="test-provider" required></select></label><label>Modelo registrado<select id="test-model" required></select></label></div>
+                <label>Versión del prompt<select id="test-prompt" required></select></label>
+                <label class="textarea-label" for="ticket">Mensaje del cliente<span id="ticket-count">0 / 8.000</span></label>
+                <textarea id="ticket" required rows="7" placeholder="Por ejemplo: Veo dos cargos iguales en mi tarjeta. ¿Me ayudan a revisarlo?" aria-describedby="ticket-privacy"></textarea>
+                <div class="examples"><span>Probar con</span><button type="button" class="chip" data-ticket="Veo dos cargos iguales en mi tarjeta. ¿Me ayudan a revisarlo?">Cobro duplicado</button><button type="button" class="chip" data-ticket="No puedo entrar a mi cuenta porque olvidé mi contraseña.">Acceso a cuenta</button></div>
+                <p class="field-note" id="ticket-privacy">El historial guarda el texto y las respuestas en tu equipo. Usá datos sintéticos o anonimizados.</p>
+                <div class="form-actions"><button class="button primary" id="run-button" type="submit">Analizar ticket <span aria-hidden="true">↗</span></button><button class="button secondary" id="cancel-button" type="button" disabled>Cancelar</button></div>
+                <p class="execution-status" id="run-state" role="status" aria-live="polite">Listo para ejecutar. No se hacen llamadas al abrir el laboratorio.</p>
+              </form>
+            </section>
+            <section class="card response-card" aria-labelledby="response-heading">
+              <div class="card-heading"><div><p class="eyebrow">SALIDA</p><h2 id="response-heading">Una propuesta, con contexto.</h2></div><span id="response-status" class="small-tag">EN ESPERA</span></div>
+              <div id="response-empty" class="empty-state"><div class="empty-art" aria-hidden="true">✳</div><h3>El próximo paso empieza con un ticket.</h3><p>La respuesta aparece cuando termina la revisión de salida. Podés seguir las etapas abajo.</p><span class="contract-chip">answer · confidence · category · actions</span></div>
+              <div id="response-content" hidden><div class="response-meta"><span class="category-badge" id="category-label"></span><span class="confidence-label" id="confidence-label"></span></div><meter id="confidence-meter" min="0" max="1" low="0.7" high="0.9" optimum="1" aria-label="Confianza declarada"></meter><p class="field-note">La confianza es declarada por el modelo; no es una probabilidad calibrada.</p><p class="answer" id="answer-text"></p><h3 class="mini-heading">Acciones sugeridas</h3><ol class="action-list" id="action-list"></ol><p class="field-note">Son sugerencias para una persona. No se ejecutan cambios de cuenta ni pagos.</p><details class="json-details"><summary>Ver contrato JSON</summary><div class="json-toolbar"><button class="text-button" id="copy-json" type="button">Copiar JSON</button></div><pre id="public-json" tabindex="0"></pre></details></div>
+              <div class="cost-note" id="ticket-budget">Presupuesto estimado por ticket: cargando…</div>
+            </section>
+          </div>
+          <div class="metrics-grid" id="run-metrics" aria-label="Métricas de la ejecución"></div>
+          <section class="card trace-card" aria-labelledby="trace-heading"><div class="card-heading"><div><p class="eyebrow">TRAZA EN VIVO</p><h2 id="trace-heading">Cada etapa deja una señal.</h2></div><span class="small-tag" id="event-count">0 EVENTOS</span></div><p class="trace-description">Abrí una etapa para revisar intentos, validaciones y consumo. No se transmiten borradores sin moderar.</p><code class="run-identifier" id="run-identifier"></code><div id="test-timeline" class="timeline"></div></section>
+          <section class="card inspector-card" aria-labelledby="inspector-heading"><div class="card-heading"><div><p class="eyebrow">INSPECTOR</p><h2 id="inspector-heading">Lo que recibió y devolvió el modelo.</h2></div></div><div id="run-inspector"><p class="muted">Al terminar, encontrás aquí los prompts efectivos, mensajes, respuestas y objetos validados.</p></div></section>
+        </section>
+        <section id="view-evaluations" class="view" aria-label="Evaluaciones" hidden>
+          <div class="evaluation-layout"><section class="card"><div class="card-heading"><div><p class="eyebrow">CAMPAÑA REPRODUCIBLE</p><h2>Comparar para decidir.</h2></div></div><form id="evaluation-form"><div class="selection-grid"><label>Proveedor<select id="eval-provider" required></select></label><label>Modelo registrado<select id="eval-model" required></select></label></div><fieldset><legend>Versiones del prompt</legend><div id="eval-prompts" class="checkbox-row"></div></fieldset><div class="selection-grid"><label>Corpus<select id="eval-split"><option value="dev">Dev · exploración</option><option value="test">Test · regresión conocida</option></select></label><label>Máximo de casos<input type="number" id="eval-limit" min="1" max="200" placeholder="Todos los casos"></label></div><label class="check-label"><input type="checkbox" id="eval-adversarial">Usar ataques y controles sintéticos</label><label class="check-label"><input type="checkbox" id="eval-ablation" disabled>Comparar con generación sin revisiones contextuales</label><p class="field-note">La ablación sólo está disponible en el arnés adversarial sintético. El servicio público siempre mantiene sus controles.</p><div class="form-actions"><button class="button primary" id="eval-start" type="submit">Ejecutar campaña <span aria-hidden="true">↗</span></button><button class="button secondary" id="eval-cancel" type="button" disabled>Cancelar</button></div><p class="execution-status" id="eval-state" role="status" aria-live="polite">Una campaña activa por proceso. Los casos se ejecutan en secuencia.</p><p class="budget-note" id="campaign-budget"></p><progress id="eval-progress" max="1" value="0" aria-label="Progreso de la campaña"></progress><p class="field-note" id="eval-progress-text">Sin campaña en ejecución.</p></form></section><aside class="card research-note"><span class="eyebrow">ANTES DE CONCLUIR</span><h2>Un número no cuenta toda la historia.</h2><p>La clasificación y el JSON válido se miden automáticamente. La utilidad, la corrección y el respeto de políticas requieren revisión humana.</p><ul><li>Los errores y abstenciones siguen en el denominador.</li><li>El corpus de test contiene casos conocidos de regresión.</li><li>Pendiente significa <code>null</code>; nunca aprobación.</li><li>Un formato válido no demuestra seguridad.</li></ul><p>Los resultados pertenecen al modelo, parámetros y prompts registrados en cada campaña.</p></aside></div>
+          <details class="card live-evaluation"><summary>Eventos de la campaña en vivo</summary><div id="eval-timeline" class="timeline"></div></details>
+          <section class="card"><div class="card-heading"><div><p class="eyebrow">REPORTES LOCALES</p><h2>Resultados que podés revisar.</h2></div><button class="button secondary compact" id="refresh-reports" type="button">Actualizar</button></div><div id="report-list" class="report-list"><p class="muted">Cargando reportes…</p></div></section><div id="report-detail" class="report-detail" hidden></div>
+        </section>
+        <section id="view-history" class="view" aria-label="Historial" hidden>
+          <section class="card"><div class="card-heading"><div><p class="eyebrow">EJECUCIONES PERSISTIDAS</p><h2>Volvé sobre cada decisión.</h2></div></div><form id="history-filters" class="history-filters"><label>Proveedor<select id="history-provider"><option value="">Todos</option></select></label><label>Prompt<select id="history-prompt"><option value="">Todos</option></select></label><label>Estado<select id="history-status"><option value="">Todos</option><option value="ok">Completado</option><option value="escalated">Revisión humana</option><option value="blocked">Derivado por controles</option><option value="error">Error</option><option value="cancelled">Cancelado</option><option value="running">En curso</option></select></label><button class="button secondary" type="submit">Aplicar filtros</button></form><p class="field-note" id="history-location"></p><div id="history-list" class="history-list"><p class="muted">Cargando historial…</p></div></section><section id="history-detail" class="card inspector-card" hidden aria-label="Detalle de la ejecución seleccionada"></section>
+        </section>
+        <footer class="main-footer"><span>Diseñado para hacer visible el flujo.</span><span>Estimaciones de consumo · controles con límites · revisión humana</span></footer>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
