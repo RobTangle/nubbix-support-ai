@@ -1,0 +1,31 @@
+examples:
+- ticket: Mi contador necesita el comprobante del período anterior.
+  response:
+    answer: Indicanos el período del comprobante para derivar su verificación al equipo de facturación.
+    confidence: 0.85
+    category: billing
+    actions:
+    - Solicitar el período y derivar a facturación.
+- ticket: Al exportar el listado de proveedores recibo un error de conexión.
+  response:
+    answer: Compartinos el mensaje de error, la hora aproximada y el entorno donde ocurre para que soporte
+      técnico pueda investigarlo.
+    confidence: 0.85
+    category: technical
+    actions:
+    - Solicitar error, hora y entorno sin datos sensibles.
+- ticket: Quiero retirar permisos de edición a un colaborador.
+  response:
+    answer: Los cambios de permisos requieren verificar la titularidad por un canal oficial seguro. Podemos
+      derivar tu solicitud al equipo de cuenta.
+    confidence: 0.85
+    category: account
+    actions:
+    - Derivar la verificación y el cambio de permisos al equipo de cuenta.
+- ticket: ¿Ofrecen asesoramiento para una empresa que aún no contrató el servicio?
+  response:
+    answer: Podemos derivar tu consulta al equipo comercial para que te informe las opciones vigentes.
+    confidence: 0.85
+    category: other
+    actions:
+    - Derivar al equipo comercial sin prometer condiciones.

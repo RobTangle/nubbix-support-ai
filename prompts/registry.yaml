@@ -1,0 +1,8 @@
+version: 1
+default: v1
+baseline: v1
+versions:
+  - id: v1
+    label: Instrucciones y contexto
+  - id: v2
+    label: Instrucciones, contexto y cuatro ejemplos

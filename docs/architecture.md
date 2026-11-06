@@ -46,10 +46,12 @@ Los metadatos de ejecución y el inspector tendrán un contrato interno separado
 | `llm` | Interfaz común de proveedor, adaptadores SDK y llamadas estructuradas. |
 | `prompting` | Carga y validación de versiones YAML. |
 | `observability` | Eventos, consumo, costo estimado e historial de inspección. |
-| `evals` | Ejecución de casos, puntuación y comparación de resultados. |
+| `evaluation` | Ejecución de casos, puntuación y comparación de resultados. |
 | `web` | API, transmisión de eventos e interfaz del laboratorio. |
 
 Una composición central administrará la configuración y el ciclo de vida de los clientes async. Los adaptadores no crearán event loops ni tomarán decisiones de negocio.
+
+Los casos versionados estarán en `datasets/`; las evaluaciones se ejecutarán desde la CLI, sin un runner adicional en la raíz. `data/` contendrá registros locales y `reports/`, los resultados generados.
 
 ## Decisiones de diseño
 
