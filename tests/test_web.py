@@ -150,7 +150,10 @@ async def test_lab_is_local_and_serves_accessible_static_assets(tmp_path: Path) 
         response = await client.get("/")
         script = await client.get("/static/app.js")
         stylesheet = await client.get("/static/styles.css")
+        progress = await client.get("/static/progress.js")
     assert response.status_code == script.status_code == stylesheet.status_code == 200
+    assert progress.status_code == 200
+    assert "javascript" in progress.headers["content-type"]
     assert '<html lang="es"' in response.text
     assert 'aria-live="polite"' in response.text
     assert 'name="viewport"' in response.text

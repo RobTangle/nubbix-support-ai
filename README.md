@@ -180,6 +180,8 @@ uv run --locked mypy
 
 La suite no requiere claves y restringe conexiones a loopback para soportar el event loop de Windows. La CI está configurada para Python 3.12/3.13 en Windows y Linux. El entorno de desarrollo se fija con `uv.lock`; `requirements.txt` se exporta desde ese lock.
 
+Si Node 22 o superior está disponible, pytest ejecuta también las regresiones JavaScript del progreso del ticket. Es opcional para estas pruebas; el laboratorio se ejecuta con Python y no requiere una compilación frontend.
+
 ## Datos y limitaciones
 
 Nubbix es un SaaS ficticio utilizado como escenario de soporte. El manual y los casos son sintéticos. Las acciones se sugieren para una persona: el asistente no ejecuta reintegros ni modifica cuentas.

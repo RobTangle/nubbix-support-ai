@@ -1,6 +1,7 @@
 import {getJSON, LabError, readRun, streamJSON} from "./api.js";
 import {initializeEvaluations} from "./evaluations.js";
 import {createTimeline, renderInspection, renderResponse} from "./inspector.js";
+import {createResponseProgress} from "./progress.js";
 import {configureProviderSelectors, copyJSON, dateTime, element, errorMessage, metrics, money, notice, statusBadge} from "./ui.js";
 
 const viewText = {test: ["DEL TICKET A LA RESPUESTA", "Soporte que podés inspeccionar.", "Probá un caso y seguí cada decisión del flujo, de principio a fin."], evaluations: ["EVIDENCIA ANTES DE ELEGIR", "Medí el flujo. Revisá la calidad.", "Compará versiones con el mismo proveedor, conservá los casos y sumá tu revisión."], history: ["MEMORIA DEL LABORATORIO", "Cada ejecución tiene una historia.", "Filtrá tus corridas locales y volvé a los prompts, respuestas y decisiones originales."]};
@@ -87,10 +88,18 @@ function initializeTicket(catalog) {
   const state = document.getElementById("run-state");
   const timeline = createTimeline(document.getElementById("test-timeline"), (count) => { document.getElementById("event-count").textContent = `${count} EVENTOS`; });
   const inspector = document.getElementById("run-inspector");
+  const progress = createResponseProgress(document.getElementById("response-progress"), () => cancel.click());
   let controller = null;
   let response = null;
   document.getElementById("copy-json").addEventListener("click", (event) => copyJSON(response, event.currentTarget));
-  cancel.addEventListener("click", () => controller?.abort());
+  cancel.addEventListener("click", () => {
+    if (!controller) return;
+    progress.cancel();
+    cancel.disabled = true;
+    state.textContent = "Cancelando el trabajo pendiente…";
+    document.getElementById("response-status").textContent = "CANCELANDO";
+    controller.abort();
+  });
   document.getElementById("ticket-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     if (controller) return;
@@ -112,10 +121,11 @@ function initializeTicket(catalog) {
     timeline.reset();
     metrics(document.getElementById("run-metrics"));
     document.getElementById("run-identifier").textContent = "";
-    document.getElementById("response-empty").hidden = false;
+    document.getElementById("response-empty").hidden = true;
     document.getElementById("response-content").hidden = true;
-    document.getElementById("response-status").textContent = "EN CURSO";
-    document.getElementById("response-status").className = "small-tag";
+    document.getElementById("response-status").textContent = "ANALIZANDO";
+    document.getElementById("response-status").className = "small-tag status-running";
+    progress.start();
     inspector.replaceChildren(element("p", "muted", "El inspector se guarda durante la ejecución. El resultado final estará disponible al terminar."));
     state.textContent = "Iniciando ejecución…";
     notice("");
@@ -125,6 +135,7 @@ function initializeTicket(catalog) {
       await streamJSON("/api/lab/runs/stream", payload, controller.signal, async (record) => {
         if (record.type === "accepted") state.textContent = "Ticket aceptado. Siguiendo las etapas en vivo…";
         if (record.type === "event") {
+          progress.append(record.event);
           timeline.append(record.event);
           runId = record.event.request_id;
           document.getElementById("run-identifier").textContent = runId;
@@ -133,6 +144,7 @@ function initializeTicket(catalog) {
         if (record.type === "result") {
           response = record.response;
           runId = record.run_id;
+          progress.finish(record.status);
           renderResponse(record.response, record.status);
           metrics(document.getElementById("run-metrics"), record.metrics);
           state.textContent = "Ejecución terminada y registrada en el historial.";
@@ -142,11 +154,14 @@ function initializeTicket(catalog) {
       cancelled = error.name === "AbortError";
       state.textContent = errorMessage(error);
       notice(errorMessage(error), error.name !== "AbortError");
-      document.getElementById("response-status").textContent = error.name === "AbortError" ? "CANCELADO" : "ERROR";
+      response = null;
+      document.getElementById("response-content").hidden = true;
+      progress.finish(cancelled ? "cancelled" : "error");
+      const badge = statusBadge(cancelled ? "cancelled" : "error");
+      badge.id = "response-status";
+      document.getElementById("response-status").replaceWith(badge);
       if (error.requestId) runId = error.requestId;
     } finally {
-      controller = null;
-      start.disabled = false;
       cancel.disabled = true;
       if (runId) {
         try {
@@ -162,6 +177,8 @@ function initializeTicket(catalog) {
       } else {
         inspector.replaceChildren(element("p", "muted", "No se recibió un ID de ejecución. Si la conexión se interrumpió, verificá el historial antes de reintentar."));
       }
+      controller = null;
+      start.disabled = false;
     }
   });
 }

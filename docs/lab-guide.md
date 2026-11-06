@@ -31,6 +31,10 @@ Abrí [el laboratorio local](http://127.0.0.1:8000). Para elegir otro puerto, ag
 
 El resultado público contiene exactamente `answer`, `confidence`, `category` y `actions`. Las acciones son propuestas para una persona: no ejecutan pagos ni cambios de cuenta. La confianza es autodeclarada y no representa una probabilidad calibrada.
 
+Mientras el ticket se procesa, **Salida** reemplaza el estado vacío por un panel de análisis en vivo: indicador activo, tiempo transcurrido desde el envío, tres etapas y hasta tres señales recientes. El avance sigue los eventos de la ejecución; no representa un porcentaje ni una estimación del tiempo restante. Un reintento permanece en su etapa y muestra el intento actual o la pausa indicada por el proveedor. En pantallas pequeñas, el envío desplaza la vista hasta **Salida** para hacer visible el progreso. **Ver traza completa** lleva al detalle inferior.
+
+**Cancelar análisis**, dentro del panel, detiene la misma ejecución que el botón del formulario y evita tener que volver a él en móvil. Al terminar, el panel se contrae a un resumen desplegable y deja lugar a la propuesta. En un bloqueo temprano, las etapas que no se ejecutaron se muestran como tales. En un fallo o cancelación, se conserva el resumen de lo ocurrido y se detiene el indicador. El siguiente envío limpia el estado anterior; cerrar la inspección forma parte de la ejecución antes de habilitar una nueva.
+
 La revisión de entrada, la generación y la revisión de salida usan el proveedor elegido. Un ticket puede requerir más de tres llamadas por los intentos de reparación. Un formato JSON válido no demuestra utilidad, corrección ni seguridad.
 
 ## Leer la traza
