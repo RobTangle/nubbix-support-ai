@@ -48,6 +48,9 @@ export function renderResponse(response, status) {
   document.getElementById("confidence-meter").value = response.confidence;
   document.getElementById("answer-text").textContent = response.answer;
   document.getElementById("action-list").replaceChildren(...response.actions.map((action) => element("li", "", action)));
+  document.getElementById("action-list").hidden = response.actions.length === 0;
+  document.getElementById("actions-empty").hidden = response.actions.length > 0;
+  document.getElementById("actions-note").hidden = response.actions.length === 0;
   document.getElementById("public-json").textContent = JSON.stringify(response, null, 2);
 }
 

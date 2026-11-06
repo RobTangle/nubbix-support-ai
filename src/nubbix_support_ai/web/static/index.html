@@ -49,7 +49,17 @@
               <div class="card-heading"><div><p class="eyebrow">SALIDA</p><h2 id="response-heading">Una propuesta, con contexto.</h2></div><span id="response-status" class="small-tag">EN ESPERA</span></div>
               <div id="response-empty" class="empty-state"><div class="empty-art" aria-hidden="true">✳</div><h3>El próximo paso empieza con un ticket.</h3><p>La respuesta aparece cuando termina la revisión de salida. Podés seguir las etapas abajo.</p><span class="contract-chip">answer · confidence · category · actions</span></div>
               <div id="response-progress" class="response-progress" role="region" aria-label="Progreso del análisis" hidden></div>
-              <div id="response-content" hidden><div class="response-meta"><span class="category-badge" id="category-label"></span><span class="confidence-label" id="confidence-label"></span></div><meter id="confidence-meter" min="0" max="1" low="0.7" high="0.9" optimum="1" aria-label="Confianza declarada"></meter><p class="field-note">La confianza es declarada por el modelo; no es una probabilidad calibrada.</p><p class="answer" id="answer-text"></p><h3 class="mini-heading">Acciones sugeridas</h3><ol class="action-list" id="action-list"></ol><p class="field-note">Son sugerencias para una persona. No se ejecutan cambios de cuenta ni pagos.</p><details class="json-details"><summary>Ver contrato JSON</summary><div class="json-toolbar"><button class="text-button" id="copy-json" type="button">Copiar JSON</button></div><pre id="public-json" tabindex="0"></pre></details></div>
+              <div id="response-content" hidden>
+                <div class="response-meta"><span class="category-badge" id="category-label"></span><span class="confidence-label" id="confidence-label"></span></div>
+                <meter id="confidence-meter" min="0" max="1" low="0.7" high="0.9" optimum="1" aria-label="Confianza declarada"></meter>
+                <p class="field-note">La confianza es declarada por el modelo; no es una probabilidad calibrada.</p>
+                <p class="answer" id="answer-text"></p>
+                <h3 class="mini-heading">Acciones sugeridas</h3>
+                <ol class="action-list" id="action-list"></ol>
+                <p id="actions-empty" class="actions-empty" hidden>No hay acciones sugeridas para esta consulta.</p>
+                <p id="actions-note" class="field-note">Son sugerencias para una persona. No se ejecutan cambios de cuenta ni pagos.</p>
+                <details class="json-details"><summary>Ver contrato JSON</summary><div class="json-toolbar"><button class="text-button" id="copy-json" type="button">Copiar JSON</button></div><pre id="public-json" tabindex="0"></pre></details>
+              </div>
               <div class="cost-note" id="ticket-budget">Presupuesto estimado por ticket: cargando…</div>
             </section>
           </div>
