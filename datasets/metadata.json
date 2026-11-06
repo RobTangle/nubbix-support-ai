@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "source": "Nubbix prototype synthetic corpus",
+  "independent_holdout": false,
+  "purpose": "Known regression cases, not evidence of independent model generalization.",
+  "adaptation": [
+    "Added explicit ticket kind.",
+    "Added adversarial split.",
+    "Renamed benign kind to control; retained original IDs and ticket text."
+  ],
+  "few_shot_policy": "Separately authored scenarios; exact normalized text overlap checked in tests; scenario-family separation reviewed by humans.",
+  "files": {
+    "tickets.jsonl": {
+      "cases": 80,
+      "source_sha256": "ea4790bb456564ada39edd389dc801116162b5b452e1fc29db608b17ee95806c",
+      "adapted_sha256": "290ed9958609d3442bc8ad30d35e18916633b2432adfb2c59943473e3552eed5"
+    },
+    "adversarial.jsonl": {
+      "cases": 20,
+      "source_sha256": "a6e48878dc34b06856b70c4501379d64b25c5e8b2ae61ba8893032390de86afd",
+      "adapted_sha256": "620434b38659f87413d600f0751980fad0a7f2bcf0c51d105429e98a0b751da7"
+    }
+  }
+}
