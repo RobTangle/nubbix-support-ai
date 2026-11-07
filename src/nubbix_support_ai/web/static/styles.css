@@ -238,6 +238,36 @@ progress::-webkit-progress-value { background: #7f9f6b; border-radius: 5px; }
 .comparison-table th { font-weight: 600; color: #6f825f; background: #f3f7ec; }
 .comparison-table th, .comparison-table td { padding: 10px 12px; border: 1px solid #e1e8d7; white-space: nowrap; }
 .comparison-table tbody th { background: #fafcf6; }
+.comparison-table .column-help { display: block; max-width: 175px; margin-top: 4px; color: var(--muted); font-size: 10px; line-height: 1.5; font-weight: 400; white-space: normal; }
+.comparison-table thead th { vertical-align: top; }
+.evaluation-layout .input-help { margin: -6px 0 16px; line-height: 1.6; }
+.evaluation-context-note { margin-top: 16px; padding: 14px 17px; border: 1px solid #dedfc9; border-left: 3px solid #b08d4e; border-radius: 8px; background: #faf9f0; font-size: 12px; }
+.evaluation-context-note strong { color: var(--ink); font-size: 12px; }
+.evaluation-context-note p { margin: 5px 0 0; }
+.metric-guide { margin: 17px 0; padding: 13px 16px; border: 1px solid var(--line); border-radius: 8px; background: #fafcf8; }
+.metric-guide > summary { color: var(--green); font-size: 12px; font-weight: 600; cursor: pointer; }
+.metric-definitions { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 25px; margin: 20px 0 5px; }
+.metric-definitions > div { min-width: 0; }
+.metric-definitions dt { font-size: 12px; color: var(--ink); font-weight: 600; }
+.metric-definitions dd { margin: 5px 0 0; color: var(--body); font-size: 12px; line-height: 1.7; }
+.evaluator-guide { margin-bottom: 22px; border-color: #cbded2; background: #f5faf6; }
+.evaluator-guide > summary { color: var(--green); cursor: pointer; }
+.guide-title { font-size: 15px; font-weight: 600; }
+.guide-subtitle { display: block; margin: 4px 0 0 17px; color: var(--muted); font-size: 12px; }
+.guide-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 19px 35px; padding-left: 23px; margin: 24px 0; }
+.guide-steps li { padding-left: 5px; font-size: 13px; }
+.guide-steps li:last-child { grid-column: 1 / -1; }
+.guide-steps li::marker { color: var(--green); font-weight: 700; }
+.guide-steps h3, .review-impact h3 { margin: 0 0 7px; font-size: 13px; color: var(--ink); }
+.guide-steps p, .review-impact p { margin: 0; font-size: 12px; line-height: 1.8; }
+.review-impact { padding: 17px 19px; border: 1px solid #cedfd0; border-radius: 9px; background: #fff; }
+.review-impact p + p { margin-top: 8px; }
+.evaluator-guide-link { display: inline-block; margin-top: 3px; color: var(--green); font-size: 12px; text-underline-offset: 3px; }
+.review-field { min-width: 0; }
+.review-field-help { margin: 6px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
+.review-field select { margin-top: 6px; }
+.report-summary .metric-note { font-size: 10px; line-height: 1.7; }
+@media (max-width: 700px) { .metric-definitions, .guide-steps { grid-template-columns: 1fr; } .review-form .review-grid { grid-template-columns: 1fr; } .evaluation-context-note { padding: 12px 14px; } .metric-guide { padding: 12px; } .review-impact { padding: 14px; } }
 .history-filters { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: end; gap: 12px; margin-bottom: 15px; }
 .history-filters label { margin-bottom: 0; }
 .history-filters .button { height: 39px; }

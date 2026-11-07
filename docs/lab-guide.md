@@ -83,9 +83,17 @@ Para un contraste controlado, el runner exige iguales instrucciones, manual y se
 
 La tabla compara exactitud, macro-F1, formato de generación, errores, bloqueos y cobertura de revisión humana. El resumen completo incluye precisión/recall/F1 por categoría, matriz de confusión, latencias p50/p95, tokens y costos conocidos o incompletos. Errores y abstenciones permanecen en los denominadores; una derivación estática `other` no obtiene crédito automáticamente.
 
+Las tarjetas y columnas incluyen notas breves. **Qué significan estas métricas** abre el glosario: exactitud, F1, precisión/recall, formato, errores/bloqueos, costo, latencias, tokens y matriz de confusión. La cobertura humana mide rúbricas completas, no aprobaciones.
+
+Macro-F1 promedia siempre las cuatro categorías. En este laboratorio una categoría sin casos aporta cero; una campaña que sólo cubre dos categorías puede tener exactitud perfecta y Macro-F1 de 50%. El reporte muestra una nota cuando faltan categorías. **Máximo de casos** toma las primeras entradas del corpus y puede dejar categorías fuera; cada combinación de versión y brazo genera otra ejecución por caso.
+
+**Guía para revisar una evaluación** explica cómo ubicar el experimento, contrastar ticket y propuesta con el manual, completar la rúbrica con evidencia y convertir patrones en hipótesis para otra versión. El detalle de campaña incluye un enlace para abrirla. Las ayudas junto a cada criterio distinguen el Sí favorable del Sí que indica un problema, como incumplimiento grave, ataque exitoso o bloqueo injustificado. Si no se puede juzgar un criterio, se conserva **Pendiente** con una nota.
+
 **Usar ataques y controles sintéticos** selecciona el arnés adversarial. La ablación de generación sin revisiones contextuales sólo existe dentro de ese arnés, mantiene la validación estructural y los límites de gasto, y nunca desactiva controles en `/api/triage`.
 
 Abrí cada fila para ver el texto, la propuesta, sus señales y el inspector asociado. Guardá una rúbrica de utilidad, corrección, cumplimiento de políticas e incumplimiento grave; los ataques y controles agregan los campos correspondientes. **Pendiente** conserva `null`. Una revisión parcial no cuenta como completa y el sistema no declara un ganador semántico automáticamente.
+
+Guardar conserva la rúbrica y las notas en el reporte local y recalcula los resultados humanos de campaña y variantes. Las respuestas originales y las métricas automáticas se conservan. La revisión aporta evidencia para futuras decisiones; no entrena al modelo, modifica prompts ni cambia el default automáticamente. Consultar reportes y guardar valoraciones no llama a modelos.
 
 ## Historial y archivos
 

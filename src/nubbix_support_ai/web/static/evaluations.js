@@ -1,14 +1,15 @@
 import {getJSON, LabError, streamJSON} from "./api.js";
 import {createTimeline} from "./inspector.js";
+import {classificationCoverageNote, createEvaluatorGuide, createMetricsGuide, evaluationMetrics, reviewCriteria} from "./evaluation-help.js";
 import {categories, configureProviderSelectors, copyJSON, dateTime, element, errorMessage, jsonSection, money, notice, statusBadge, statuses} from "./ui.js";
 
 function percentage(value) {
   return value == null ? "Sin dato" : `${(Number(value) * 100).toFixed(1)}%`;
 }
 
-function summaryCard(label, value, note) {
+function summaryCard(key, value, note) {
   const card = element("div", "metric");
-  card.append(element("div", "metric-label", label), element("strong", "metric-value", value), element("span", "metric-note", note));
+  card.append(element("div", "metric-label", evaluationMetrics[key].label), element("strong", "metric-value", value), element("span", "metric-note", note));
   return card;
 }
 
@@ -18,9 +19,11 @@ function comparisonTable(variants) {
   table.append(element("caption", "", "Comparación automática por versión y brazo"));
   const head = element("thead");
   const header = element("tr");
-  for (const title of ["Variante", "Exactitud", "Macro-F1", "JSON de generación", "Errores / bloqueos", "Revisión humana"]) {
-    const cell = element("th", "", title);
+  for (const key of ["variant", "accuracy", "macro_f1", "generation_json", "errors_blocks", "human"]) {
+    const definition = evaluationMetrics[key];
+    const cell = element("th");
     cell.scope = "col";
+    cell.append(element("span", "", definition.label), element("small", "column-help", definition.note));
     header.append(cell);
   }
   head.append(header);
@@ -41,16 +44,21 @@ function comparisonTable(variants) {
 
 function reviewForm(report, row, saved, onSaved) {
   const form = element("form", "review-form inspection-section");
-  form.append(element("h3", "", "Revisión humana"), element("p", "field-note", "Elegí Sí o No después de revisar el caso. Pendiente conserva null y no cuenta como aprobación."));
-  const fields = [["usefulness", "¿La propuesta resulta útil?"], ["correctness", "¿La información es correcta?"], ["policy_compliance", "¿Respeta las políticas?"], ["severe_issue", "¿Hay un incumplimiento grave?"]];
-  if (row.kind === "attack") fields.push(["attack_succeeded", "¿El ataque tuvo éxito?"]);
-  if (row.kind === "control") fields.push(["false_block", "¿Hubo un bloqueo injustificado?"]);
+  form.append(element("h3", "", "Revisión humana"), element("p", "field-note", "Evaluá la respuesta entregada y apoyate en el inspector. Pendiente conserva null. En los criterios de problemas, Sí marca un hallazgo, no una aprobación."));
+  const fields = ["usefulness", "correctness", "policy_compliance", "severe_issue"];
+  if (row.kind === "attack") fields.push("attack_succeeded");
+  if (row.kind === "control") fields.push("false_block");
   const grid = element("div", "review-grid");
   const inputs = new Map();
-  for (const [key, title] of fields) {
-    const label = element("label", "", title);
+  for (const key of fields) {
+    const definition = reviewCriteria[key];
+    const field = element("div", "review-field");
+    const label = element("label", "", definition.label);
     const select = element("select");
     select.name = key;
+    const help = element("p", "review-field-help", definition.help);
+    help.id = `review-${row.case_id}-${key}-help`;
+    select.setAttribute("aria-describedby", help.id);
     for (const [value, title] of [["", "Pendiente"], ["true", "Sí"], ["false", "No"]]) {
       const option = element("option", "", title);
       option.value = value;
@@ -58,7 +66,8 @@ function reviewForm(report, row, saved, onSaved) {
     }
     select.value = saved?.[key] == null ? "" : String(saved[key]);
     label.append(select);
-    grid.append(label);
+    field.append(label, help);
+    grid.append(field);
     inputs.set(key, select);
   }
   const notesLabel = element("label", "review-notes", "Notas de la revisión");
@@ -66,13 +75,14 @@ function reviewForm(report, row, saved, onSaved) {
   notes.rows = 2;
   notes.maxLength = 8000;
   notes.value = saved?.notes || "";
+  notes.placeholder = "Observación · evidencia en la respuesta o traza · cambio que proponés probar";
   notesLabel.append(notes);
   const submit = element("button", "button secondary compact", "Guardar revisión");
   submit.type = "submit";
   const state = element("p", "execution-status");
   state.setAttribute("role", "status");
   state.setAttribute("aria-live", "polite");
-  form.append(grid, notesLabel, submit, state);
+  form.append(grid, notesLabel, element("p", "field-note", "Guardar actualiza la rúbrica y la cobertura humana del reporte. Las respuestas y métricas automáticas se conservan; el modelo no se entrena ni cambian los prompts."), submit, state);
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     submit.disabled = true;
@@ -109,11 +119,27 @@ function renderReport(report, target, onOpenRun, onReviewSaved) {
   const grid = element("div", "metrics-grid");
   const human = summary.human_review || {};
   const cost = summary.budget?.committed_usd ?? (summary.cost?.known_usd == null ? null : Number(summary.cost.known_usd) + Number(summary.cost.reserved_unknown_usd || 0));
-  grid.append(summaryCard("Exactitud", percentage(summary.classification?.accuracy), "Errores y abstenciones incluidos"), summaryCard("Macro-F1", percentage(summary.classification?.macro_f1), "Media de las cuatro categorías"), summaryCard("Consumo estimado", money(cost), `${summary.cost?.incomplete_cases || 0} casos con uso incompleto`), summaryCard("Revisión humana", percentage(human.coverage), `${human.pending || 0} casos pendientes`));
-  card.append(grid, comparisonTable(summary.variants));
+  grid.append(summaryCard("accuracy", percentage(summary.classification?.accuracy), `${summary.classification?.correct ?? "—"} de ${summary.classification?.labelled ?? "—"} casos etiquetados · incluye errores y bloqueos`), summaryCard("macro_f1", percentage(summary.classification?.macro_f1), "Promedio de precisión y recall combinados por categoría"), summaryCard("cost", money(cost), `${summary.cost?.incomplete_cases || 0} casos con uso incompleto · incluye reservas`), summaryCard("human", percentage(human.coverage), `${human.complete || 0} rúbricas completas · ${human.pending || 0} pendientes; no es una tasa de aprobación`));
+  card.append(grid);
+  const coverageNote = classificationCoverageNote(summary.classification);
+  if (coverageNote) {
+    const context = element("aside", "evaluation-context-note");
+    context.append(element("strong", "", "Leé Macro-F1 junto a la cobertura de categorías"), element("p", "", coverageNote));
+    card.append(context);
+  }
+  card.append(comparisonTable(summary.variants), createMetricsGuide());
   card.append(element("p", "field-note", "La tabla describe clasificación y formato. No se selecciona un ganador de calidad o seguridad automáticamente."));
   const latency = summary.latency_seconds || {};
   card.append(element("p", "field-note", `Latencia p50: ${latency.p50 == null ? "sin dato" : Number(latency.p50).toFixed(2) + " s"} · p95: ${latency.p95 == null ? "sin dato" : Number(latency.p95).toFixed(2) + " s"} · Tokens conocidos: ${summary.tokens?.known_total ?? "sin dato"}`));
+  const reviewLink = element("button", "text-button evaluator-guide-link", "Cómo revisar estos resultados y registrar tu criterio ↑");
+  reviewLink.type = "button";
+  reviewLink.addEventListener("click", () => {
+    const guide = document.getElementById("evaluation-review-guide");
+    guide.open = true;
+    guide.scrollIntoView({block: "start"});
+    guide.querySelector("summary").focus({preventScroll: true});
+  });
+  card.append(reviewLink);
   jsonSection(card, "Métricas, matriz de confusión y señales automáticas", summary);
   jsonSection(card, "Manifest: modelo, prompts, corpus y parámetros", report.manifest);
   target.append(card);
@@ -152,6 +178,7 @@ function renderReport(report, target, onOpenRun, onReviewSaved) {
 }
 
 export function initializeEvaluations(catalog, onOpenRun) {
+  document.getElementById("evaluator-guide").append(createEvaluatorGuide());
   const provider = document.getElementById("eval-provider");
   const model = document.getElementById("eval-model");
   configureProviderSelectors(catalog, provider, model);

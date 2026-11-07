@@ -186,7 +186,7 @@ La suite no requiere claves y restringe conexiones a loopback para soportar el e
 
 También podés iniciar la CI desde GitHub: **Actions → Python quality → Run workflow**.
 
-Si Node 22 o superior está disponible, pytest ejecuta también las regresiones JavaScript del progreso del ticket. Es opcional para estas pruebas; el laboratorio se ejecuta con Python y no requiere una compilación frontend.
+Si Node 22 o superior está disponible, pytest ejecuta también las regresiones JavaScript del progreso del ticket y las ayudas de evaluación. Es opcional para estas pruebas; el laboratorio se ejecuta con Python y no requiere una compilación frontend.
 
 ## Datos y limitaciones
 
