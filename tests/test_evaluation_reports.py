@@ -43,3 +43,14 @@ def test_updating_review_replaces_case_and_recalculates_coverage(tmp_path):
     assert len(result["reviews"]) == 1
     assert result["summary"]["human_review"]["coverage"] == 1
     assert result["summary"]["semantic_winner"] is None
+
+
+def test_listing_preserves_metadata_for_an_older_partial_campaign(tmp_path):
+    writer = ReportWriter(tmp_path, {"prompt_versions": ["v1", "v2"], "splits": ["dev"]})
+    writer.append_case({"case_id": "x:v1:full", "kind": "ticket", "status": "ok",
+                        "prompt_version": "v1", "arm": "full"})
+    writer.snapshot(status="budget_exhausted", planned=2)
+    [listed] = list_reports(tmp_path)
+    assert listed["prompt_versions"] == ["v1", "v2"]
+    assert listed["splits"] == ["dev"]
+    assert list(listed["variants"]) == ["v1:full"]

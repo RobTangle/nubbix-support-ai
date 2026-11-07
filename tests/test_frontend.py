@@ -9,7 +9,9 @@ NODE = shutil.which("node")
 
 
 @pytest.mark.skipif(NODE is None, reason="Node is optional and only needed for frontend unit tests")
-@pytest.mark.parametrize("test_file", ["test_progress.mjs", "test_evaluation_help.mjs"])
+@pytest.mark.parametrize("test_file", [
+    "test_progress.mjs", "test_evaluation_help.mjs", "test_evaluation_review.mjs",
+])
 def test_frontend_behaviour(test_file: str) -> None:
     version = subprocess.check_output([NODE, "--version"], text=True, timeout=10)
     if int(version.strip().lstrip("v").split(".", 1)[0]) < 22:

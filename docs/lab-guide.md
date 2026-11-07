@@ -81,6 +81,10 @@ Los casos se procesan secuencialmente y comparten un presupuesto estimado de cam
 
 Para un contraste controlado, el runner exige iguales instrucciones, manual y seguridad entre versiones. Alterna el orden de versiones por caso. El corpus de test contiene casos conocidos de regresión, no un holdout nuevo. Resultados de proveedores distintos pertenecen a reportes separados.
 
+En **Resultados que podés revisar**, cada campaña muestra corpus, prompts evaluados, aciertos sobre casos etiquetados, Macro-F1, errores y bloqueos. Podés ordenar por exactitud. Usá el progreso de ejecución y la cobertura de categorías para interpretar campañas parciales o con un corpus limitado.
+
+En el detalle, **Ver casos** abre la cola. **Alertas pendientes** reúne las filas con señales y sin rúbrica completa. Combiná la variante con **Motivo de alerta** para aislar, por ejemplo, las consultas bloqueadas de un prompt. La búsqueda acepta el ID o texto del ticket. Cada fila muestra lo esperado y lo observado antes de abrirla. Los ataques bloqueados se distinguen de las consultas legítimas bloqueadas. Al guardar la revisión, los filtros se conservan y **Con alertas** permite volver a los casos ya revisados.
+
 La tabla compara exactitud, macro-F1, formato de generación, errores, bloqueos y cobertura de revisión humana. El resumen completo incluye precisión/recall/F1 por categoría, matriz de confusión, latencias p50/p95, tokens y costos conocidos o incompletos. Errores y abstenciones permanecen en los denominadores; una derivación estática `other` no obtiene crédito automáticamente.
 
 Las tarjetas y columnas incluyen notas breves. **Qué significan estas métricas** abre el glosario: exactitud, F1, precisión/recall, formato, errores/bloqueos, costo, latencias, tokens y matriz de confusión. La cobertura humana mide rúbricas completas, no aprobaciones.

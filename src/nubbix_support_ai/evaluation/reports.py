@@ -155,7 +155,9 @@ def list_reports(root: Path, *, limit: int = 100) -> list[dict[str, Any]]:
     values = []
     for directory in root.glob("*"):
         try:
-            values.append(read_report(root, directory.name)["summary"])
+            report = read_report(root, directory.name)
+            metadata = {key: report["manifest"].get(key, []) for key in ("prompt_versions", "splits")}
+            values.append(report["summary"] | metadata)
         except AppError:
             continue
     return sorted(values, key=lambda item: item["created_at"], reverse=True)[:max(0, limit)]
