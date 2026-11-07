@@ -1,6 +1,7 @@
 import shutil
 from decimal import Decimal
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 import yaml
@@ -78,13 +79,14 @@ def test_catalog_compares_effective_context_and_validates_examples():
 
 
 def test_new_prompt_version_needs_no_python_change(tmp_path):
+    version = f"test-{uuid4().hex}"
     shutil.copytree(ROOT / "prompts", tmp_path / "prompts")
-    shutil.copytree(tmp_path / "prompts/versions/v1", tmp_path / "prompts/versions/v3")
+    shutil.copytree(tmp_path / "prompts/versions/v1", tmp_path / "prompts/versions" / version)
     registry_path = tmp_path / "prompts/registry.yaml"
     registry = yaml.safe_load(registry_path.read_text(encoding="utf-8"))
-    registry["versions"].append({"id": "v3", "label": "Third version"})
+    registry["versions"].append({"id": version, "label": "Test version"})
     registry_path.write_text(yaml.safe_dump(registry), encoding="utf-8")
-    assert load_catalog(tmp_path).get("v3").version == "v3"
+    assert load_catalog(tmp_path).get(version).version == version
 
 
 def test_catalog_rejects_path_traversal_and_unresolved_templates(tmp_path):
