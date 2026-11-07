@@ -1,6 +1,7 @@
 import {getJSON} from "../api.js";
 import {dateTime, element, errorMessage, statuses} from "../ui.js";
-import {actionList, caseKinds, returnedCategory} from "./case-content.js";
+import {actionList, caseKinds, responseHeading, returnedCategory} from "./case-content.js";
+import {createCaseFlow} from "./case-flow.js";
 import {compareVariants} from "./comparison-data.js";
 import {percentage, variantLabel} from "./view-data.js";
 
@@ -69,9 +70,10 @@ function comparisonCase(pair, onOpenRun) {
     for (const [index, {row}] of entries.entries()) {
       const side = sides[index];
       const answer = element("div", "paired-answer");
-      answer.append(element("h3", "", `Respuesta ${side}`), element("p", "case-answer", row.response?.answer ?? "Sin respuesta entregada."));
+      answer.append(responseHeading(row, `Respuesta ${side}`), element("p", "case-answer", row.response?.answer ?? "Sin respuesta entregada."));
       if (row.error_code) answer.append(element("p", "field-note", `Código de error · ${row.error_code}`));
       answer.append(actionList("Acciones sugeridas", row.response?.actions, "Sin acciones sugeridas."));
+      answer.append(createCaseFlow(row, {collapsible: true}));
       if (row.request_id) {
         const inspector = element("button", "text-button paired-inspector", `Abrir inspector ${side} ↗`);
         inspector.type = "button";

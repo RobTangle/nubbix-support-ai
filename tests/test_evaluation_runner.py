@@ -139,6 +139,9 @@ async def test_adversarial_ablation_only_changes_harness_and_preserves_canary_bo
     assert all("NUBBIX_CANARY_7F2A" not in call.messages[-1].content for call in provider.calls)
     assert all(row["signals"]["human_attack_succeeded"] is None for row in data["cases"])
     assert all(row["response"] for row in data["cases"])
+    ablated = next(row for row in data["cases"] if row["arm"] == "unguarded")
+    assert ablated["flow"]["stages"]["input_moderation"]["status"] == "skipped"
+    assert ablated["flow"]["stages"]["output_moderation"]["status"] == "skipped"
 
 
 async def test_ablation_cannot_be_enabled_for_normal_evaluation(tmp_path):
@@ -157,6 +160,9 @@ async def test_generation_transport_error_is_unknown_schema_validity(tmp_path):
         report = await run_evaluation(runtime, cases()[:1], provider="openai", prompt_versions=["v1"])
     row = read_report(settings.reports_dir, report.run_id)["cases"][0]
     assert row["signals"]["generation_schema_valid"] is None
+    assert row["flow"]["blocked_at"] is None
+    assert row["flow"]["stages"]["generation"]["status"] == "error"
+    assert row["flow"]["stages"]["output_moderation"]["status"] == "not_run"
     assert report.summary["json_validity"]["generation_observations"] == 0
     assert report.summary["tokens"]["known_total"] == 120
 
@@ -173,10 +179,49 @@ async def test_blocked_public_output_keeps_raw_generation_leak_as_separate_signa
                                       adversarial=True)
     row = read_report(settings.reports_dir, report.run_id)["cases"][0]
     assert row["status"] == "blocked"
+    flow = row["flow"]
+    assert flow["blocked_at"] == "output_moderation"
+    assert flow["stages"]["input_moderation"]["decision"] == "allow"
+    assert flow["stages"]["generation"]["category"] == "billing"
+    assert flow["stages"]["generation"]["confidence"] == 0.85
+    assert flow["stages"]["output_moderation"]["decision"] == "block"
+    assert flow["stages"]["output_moderation"]["reason_code"] == "policy_violation"
+    assert "NUBBIX_CANARY_7F2A" not in json.dumps(flow)
     assert row["signals"]["canary_leaked"] is False
     assert row["signals"]["raw_generation_canary_leaked"] is True
     assert row["signals"]["raw_generation_forbidden_pattern_matches"] == ["NUBBIX_CANARY_7F2A"]
     assert row["signals"]["human_attack_succeeded"] is None
+
+
+@pytest.mark.parametrize(("replies", "origin", "stage_states"), [
+    ([{"decision": "review", "reason_code": "ambiguous"}],
+     "input_moderation", ("ok", "not_run", "not_run")),
+    ([ALLOW, LLMReply("", USAGE, "gpt-6-luna", refused=True)],
+     "generation", ("ok", "refused", "not_run")),
+    ([ALLOW, "JSON inválido", PROPOSAL | {"category": "other", "answer": "Puedo derivarte a soporte."}, ALLOW],
+     None, ("ok", "ok", "ok")),
+])
+async def test_evaluation_distinguishes_review_refusal_and_other_proposal(tmp_path, replies, origin, stage_states):
+    settings = settings_at(tmp_path)
+    async with Runtime(settings, providers={"openai": ScriptedProvider(replies)}) as runtime:
+        report = await run_evaluation(runtime, cases()[:1], provider="openai", prompt_versions=["v1"])
+    row = read_report(settings.reports_dir, report.run_id)["cases"][0]
+    flow = row["flow"]
+    assert flow["blocked_at"] == origin
+    assert tuple(flow["stages"][stage]["status"] for stage in (
+        "input_moderation", "generation", "output_moderation",
+    )) == stage_states
+    assert row["response"]["category"] == "other"
+    if origin == "input_moderation":
+        assert flow["stages"][origin]["decision"] == "review"
+        assert flow["stages"][origin]["reason_code"] == "ambiguous"
+    elif origin == "generation":
+        assert flow["stages"][origin]["reason_code"] == "provider_refusal"
+        assert "decision" not in flow["stages"][origin]
+    else:
+        assert row["status"] == "ok"
+        assert row["response"]["answer"] == "Puedo derivarte a soporte."
+        assert flow["stages"]["generation"]["attempts"] == 2
 
 
 async def test_ticket_budget_exhaustion_preserves_campaign_and_allows_next_case(tmp_path):

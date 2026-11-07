@@ -1,7 +1,8 @@
 import {getJSON} from "../api.js";
 import {reviewCriteria} from "../evaluation-help.js";
 import {element, errorMessage, jsonSection, statusBadge} from "../ui.js";
-import {actionList, caseKinds, returnedCategory} from "./case-content.js";
+import {actionList, caseKinds, responseHeading, returnedCategory} from "./case-content.js";
+import {createCaseFlow} from "./case-flow.js";
 import {assessCase, filterCases, reviewFields, variantLabel} from "./view-data.js";
 
 const views = {priority: "Alertas pendientes", alerts: "Con alertas", pending: "Revisión pendiente", all: "Todos"};
@@ -82,7 +83,7 @@ function caseBody(entry, onOpenRun, onSubmit) {
   const metadata = element("div", "inspector-metadata");
   metadata.append(statusBadge(row.status));
   body.append(metadata, element("h3", "", "Consulta"), element("p", "case-ticket", row.text));
-  body.append(element("h3", "", "Respuesta entregada"), element("p", "case-answer", row.response?.answer ?? "Sin respuesta entregada."));
+  body.append(createCaseFlow(row), responseHeading(row), element("p", "case-answer", row.response?.answer ?? "Sin respuesta entregada."));
   if (row.error_code) body.append(element("p", "field-note", `Error operativo: ${row.error_code}`));
   const actions = element("div", "case-evidence");
   actions.append(actionList("Acciones esperadas", row.expected_actions, "Sin acciones de referencia."),

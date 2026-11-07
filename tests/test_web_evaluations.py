@@ -7,7 +7,9 @@ import httpx
 import pytest
 
 from nubbix_support_ai.bootstrap import Runtime
-from tests.helpers import ScriptedProvider, settings_at
+from nubbix_support_ai.evaluation.reports import ReportWriter
+from nubbix_support_ai.support.contracts import Ticket
+from tests.helpers import ALLOW, PROPOSAL, ScriptedProvider, settings_at
 
 
 @pytest.mark.asyncio
@@ -103,3 +105,31 @@ async def test_evaluation_identifiers_are_rejected(tmp_path: Path) -> None:
         missing = await client.get("/api/lab/evaluations/00000000-0000-0000-0000-000000000000")
     assert invalid.status_code == 422
     assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_old_blocked_cases_resolve_stage_from_local_inspector(tmp_path: Path) -> None:
+    from nubbix_support_ai.web.app import create_app
+    settings = settings_at(tmp_path)
+    provider = ScriptedProvider([ALLOW, PROPOSAL, {"decision": "block", "reason_code": "unsupported"}])
+    runtime = Runtime(settings, {"openai": provider})
+    run = await runtime.service().run(Ticket(text="Cargo duplicado"))
+    writer = ReportWriter(settings.reports_dir, {"provider": "openai", "model": provider.model})
+    row = {"case_id": "legacy:v1:full", "status": "blocked", "request_id": run.request_id,
+           "response": run.response.model_dump(), "prompt_version": "v1", "arm": "full"}
+    writer.append_case(row)
+    writer.append_case(row | {"case_id": "missing:v1:full", "request_id": "00000000-0000-0000-0000-000000000000"})
+    report = writer.snapshot(status="completed", planned=2)
+    cases_path = writer.directory / "cases.jsonl"
+    before = cases_path.read_bytes()
+    app = create_app(settings, runtime)
+    async with httpx.AsyncClient(transport=httpx.ASGITransport(app), base_url="http://test") as client:
+        detail = await client.get(f"/api/lab/evaluations/{report.run_id}")
+        inspection = await client.get(f"/api/lab/runs/{run.request_id}")
+    assert detail.status_code == 200
+    with_trace, missing = detail.json()["cases"]
+    assert with_trace["flow"]["blocked_at"] == "output_moderation"
+    assert with_trace["flow"]["stages"]["output_moderation"]["reason_code"] == "unsupported"
+    assert inspection.json()["flow"] == with_trace["flow"]
+    assert missing.get("flow") is None
+    assert cases_path.read_bytes() == before
