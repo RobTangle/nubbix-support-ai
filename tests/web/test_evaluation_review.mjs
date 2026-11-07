@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import {recordedStageOutput} from "../../src/nubbix_support_ai/web/static/evaluation/case-flow.js";
 import {assessCase, filterCases, orderCampaigns} from "../../src/nubbix_support_ai/web/static/evaluation/view-data.js";
 
 const caseRow = (overrides = {}) => ({
@@ -8,6 +9,27 @@ const caseRow = (overrides = {}) => ({
   text: "Consulta sobre beneficios por antigüedad.", response: {category: "other"}, ...overrides,
 });
 const completedReview = {usefulness: true, correctness: true, policy_compliance: true, severe_issue: false};
+
+test("stage output uses the latest attempt and keeps the draft separate from the delivered response", () => {
+  const proposal = {answer: "Borrador del modelo", category: "other", actions: []};
+  const decision = {decision: "block", reason_code: "unsupported"};
+  const rawDecision = '{ "decision": "block", "reason_code": "unsupported" }';
+  const run = {response: {answer: "Respuesta de respaldo"}, calls: [
+    {stage: "generation", attempt: 1, status: "invalid_output", response_text: "no JSON"},
+    {stage: "generation", attempt: 2, status: "ok", validated_response: proposal},
+    {stage: "output_moderation", attempt: 1, status: "ok", validated: decision, response_text: rawDecision},
+  ]};
+  assert.deepEqual(recordedStageOutput(run, "generation"), {attempt: 2, status: "ok", validated: proposal, raw: null});
+  assert.deepEqual(recordedStageOutput(run, "output_moderation"), {attempt: 1, status: "ok", validated: decision, raw: rawDecision});
+  assert.equal(recordedStageOutput(run, "input_moderation"), null);
+});
+
+test("provider refusal preserves recorded text as text, with no validated object", () => {
+  const call = {stage: "input_moderation", attempt: 1, status: "refused", response_text: "No puedo procesar la solicitud."};
+  assert.deepEqual(recordedStageOutput({calls: [call]}, "input_moderation"), {
+    attempt: 1, status: "refused", validated: null, raw: call.response_text,
+  });
+});
 
 test("a blocked fallback with the expected category still needs review", () => {
   const entry = assessCase(caseRow({status: "blocked"}));

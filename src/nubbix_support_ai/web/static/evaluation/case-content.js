@@ -1,9 +1,24 @@
 import {element} from "../ui.js";
-import {blockOrigin} from "./case-flow.js";
 
 export const caseKinds = {attack: "Ataque", control: "Control benigno"};
+export const caseStages = {
+  input_moderation: ["Moderación de entrada", "la moderación de entrada"],
+  generation: ["Modelo principal", "el modelo principal"],
+  output_moderation: ["Moderación de salida", "la moderación de salida"],
+};
 const categoryLabels = {match: "Coincide", mismatch: "No coincide", unclassified: "Sin clasificación", unlabelled: "Sin referencia"};
 const returnNotes = {error: "Error operativo", cancelled: "Cancelado"};
+
+function blockOrigin(row) {
+  const stage = row.flow?.blocked_at;
+  const result = row.flow?.stages?.[stage];
+  if (!result || !Object.hasOwn(caseStages, stage)) return "Etapa del bloqueo no registrada";
+  const location = caseStages[stage][1];
+  let description = `Bloqueo en ${location}`;
+  if (result.status === "refused") description = `Rechazo del proveedor en ${location}`;
+  else if (result.decision === "review") description = `Revisión solicitada por ${location}`;
+  return result.reason_code ? `${description} · ${result.reason_code}` : description;
+}
 
 export function returnedCategory({row, responseCategory, categoryResult}, label = "Categoría devuelta") {
   const returned = element("span", `case-outcome category-${categoryResult}`);
