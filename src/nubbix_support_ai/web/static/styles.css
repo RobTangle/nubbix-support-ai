@@ -347,7 +347,34 @@ progress::-webkit-progress-value { background: #7f9f6b; border-radius: 5px; }
 .case-actions h3 { margin-top: 2px; }
 .case-actions ul { padding-inline-start: 17px; margin: 3px 0; font-size: 12px; }
 .review-form button[aria-disabled="true"] { opacity: .65; cursor: wait; }
+.evaluation-comparison { margin-top: 22px; scroll-margin-top: 12px; }
+.evaluation-comparison .card-heading { flex-wrap: wrap; gap: 10px; margin-bottom: 9px; }
+.evaluation-comparison > .field-note { font-size: 12px; }
+.paired-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 12px; }
+.paired-options fieldset { min-width: 0; margin: 0; padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px; background: #fafcf8; }
+.paired-options legend { padding: 0 5px; color: var(--green); font-weight: 700; }
+.paired-options label { margin: 0 0 4px; }
+.paired-options select + label { margin-top: 9px; }
+.paired-option-meta { margin: 6px 0 0; }
+.evaluation-comparison .execution-status:empty { margin: 0; min-height: 0; }
+.paired-overview { margin-top: 14px; padding: 12px 15px; border: 1px solid #d6e4d5; border-radius: 8px; background: #f4f8f0; }
+.paired-overview-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 5px 12px; }
+.paired-jump { color: var(--green); font-size: 12px; }
+.paired-overview h3, .paired-case-toolbar h3 { margin: 0; font-size: 15px; }
+.paired-overview .field-note, .paired-case-toolbar .field-note { margin: 4px 0 0; font-size: 12px; }
+.paired-difference { margin: 8px 0 0; color: #225840; font-size: 13px; font-weight: 650; }
+.paired-table-scroll { margin-top: 12px; }
+.paired-metrics { font-size: 12px; }
+.paired-metrics th, .paired-metrics td { white-space: normal; padding: 8px 10px; }
+.paired-case-toolbar { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 10px; margin: 18px 0 10px; scroll-margin-top: 16px; }
+.paired-case-toolbar label { min-width: 0; margin: 0; }
+.paired-case-toolbar select { margin-top: 4px; }
+.paired-answer { min-width: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; }
+.paired-answer .case-answer { overflow-wrap: anywhere; }
+.paired-answer .case-actions { margin-top: 8px; }
+.paired-inspector { margin-top: 8px; color: var(--green); }
 @media (max-width: 900px) { .report-list { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .paired-options { grid-template-columns: 1fr; } }
 @media (max-width: 700px) { .case-evidence { grid-template-columns: 1fr; } .review-shortcut { margin-inline-start: 0; } }
 @media (max-width: 700px) { .metric-definitions, .guide-steps { grid-template-columns: 1fr; } .review-form .review-grid { grid-template-columns: 1fr; } .evaluation-context-note { padding: 12px 14px; } .metric-guide { padding: 12px; } .review-impact { padding: 14px; } }
 .history-filters { display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: end; gap: 12px; margin-bottom: 15px; }

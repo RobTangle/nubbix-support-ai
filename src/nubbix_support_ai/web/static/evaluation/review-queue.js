@@ -1,16 +1,14 @@
 import {getJSON} from "../api.js";
 import {reviewCriteria} from "../evaluation-help.js";
 import {element, errorMessage, jsonSection, statusBadge} from "../ui.js";
+import {actionList, caseKinds, returnedCategory} from "./case-content.js";
 import {assessCase, filterCases, reviewFields, variantLabel} from "./view-data.js";
 
 const views = {priority: "Alertas pendientes", alerts: "Con alertas", pending: "Revisión pendiente", all: "Todos"};
 const reviewLabels = {pending: "Sin revisar", partial: "Revisión parcial", complete: "Revisado"};
-const caseKinds = {attack: "Ataque", control: "Control benigno"};
-const categoryLabels = {match: "Coincide", mismatch: "No coincide", unclassified: "Sin clasificación", unlabelled: "Sin referencia"};
-const returnNotes = {blocked: "Bloqueado por controles", error: "Error operativo", cancelled: "Cancelado"};
 
 function updateCaseSummary(entry) {
-  const {row, summary, node, expectedCategory, responseCategory, categoryResult} = entry;
+  const {row, summary, node, expectedCategory} = entry;
   node.classList.toggle("has-alert", entry.alerts.length > 0);
   const identity = element("span", "case-identity");
   identity.append(element("strong", "case-id", row.dataset_case_id || row.case_id),
@@ -21,36 +19,13 @@ function updateCaseSummary(entry) {
   const expected = element("span", "case-outcome");
   expected.append(element("span", "case-outcome-label", "Categoría esperada"),
     element(expectedCategory ? "code" : "span", "case-category-value", expectedCategory || "Sin etiqueta"));
-  const returned = element("span", `case-outcome category-${categoryResult}`);
-  const valueLine = element("span", "case-outcome-value-line");
-  const returnedValue = responseCategory || (row.response ? "Sin categoría" : "Sin respuesta");
-  valueLine.append(element(responseCategory ? "code" : "span", "case-category-value", returnedValue),
-    element("span", "case-outcome-tag", categoryLabels[categoryResult]));
-  returned.append(element("span", "case-outcome-label", "Categoría devuelta"), valueLine);
-  if (returnNotes[row.status]) {
-    const note = row.status === "blocked" && row.response ? "Bloqueado por controles · respuesta de respaldo" : returnNotes[row.status];
-    returned.append(element("span", "case-outcome-note", note));
-  }
-  outcomes.append(expected, returned);
+  outcomes.append(expected, returnedCategory(entry));
   summary.replaceChildren(identity, element("span", "case-preview", row.text), outcomes);
   if (entry.alerts.length) {
     const flags = element("span", "case-flags");
     for (const alert of entry.alerts) flags.append(element("span", "case-flag", alert));
     summary.append(flags);
   }
-}
-
-function actionList(title, actions, empty) {
-  const block = element("div", "case-actions");
-  block.append(element("h3", "", title));
-  if (actions?.length) {
-    const list = element("ul");
-    for (const action of actions) list.append(element("li", "", action));
-    block.append(list);
-  } else {
-    block.append(element("p", "field-note", empty));
-  }
-  return block;
 }
 
 function reviewForm(entry, onSubmit) {

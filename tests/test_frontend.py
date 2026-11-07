@@ -11,6 +11,7 @@ NODE = shutil.which("node")
 @pytest.mark.skipif(NODE is None, reason="Node is optional and only needed for frontend unit tests")
 @pytest.mark.parametrize("test_file", [
     "test_progress.mjs", "test_evaluation_help.mjs", "test_evaluation_review.mjs",
+    "test_evaluation_comparison.mjs",
 ])
 def test_frontend_behaviour(test_file: str) -> None:
     version = subprocess.check_output([NODE, "--version"], text=True, timeout=10)

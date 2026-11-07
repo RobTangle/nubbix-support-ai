@@ -2,6 +2,7 @@ import {getJSON, LabError, streamJSON} from "./api.js";
 import {createTimeline} from "./inspector.js";
 import {classificationCoverageNote, createEvaluatorGuide, createMetricsGuide, evaluationMetrics} from "./evaluation-help.js";
 import {createCampaignCard} from "./evaluation/campaign-cards.js";
+import {createComparisonPanel} from "./evaluation/comparison.js";
 import {createReviewQueue} from "./evaluation/review-queue.js";
 import {orderCampaigns, percentage, variantLabel} from "./evaluation/view-data.js";
 import {configureProviderSelectors, copyJSON, dateTime, element, errorMessage, jsonSection, money, notice, statusBadge, statuses} from "./ui.js";
@@ -40,7 +41,7 @@ function comparisonTable(variants) {
   return wrapper;
 }
 
-function reportSummary(report, shortcut) {
+function reportSummary(report, shortcut, onCompare) {
   const summary = report.summary || {};
   const card = element("section", "card report-summary");
   const header = element("div", "inspector-header");
@@ -52,7 +53,10 @@ function reportSummary(report, shortcut) {
   header.append(identity, copy);
   const meta = element("div", "report-meta");
   meta.append(statusBadge(summary.status), element("p", "field-note", `${dateTime(summary.created_at)} · ${summary.completed || 0} de ${summary.planned || 0} ejecuciones registradas`));
-  meta.append(shortcut);
+  const compare = element("button", "button secondary compact", "Comparar esta campaña ↑");
+  compare.type = "button";
+  compare.addEventListener("click", () => onCompare(report.run_id, compare));
+  meta.append(shortcut, compare);
   card.append(header, meta);
   const grid = element("div", "metrics-grid");
   const human = summary.human_review || {};
@@ -83,13 +87,13 @@ function reportSummary(report, shortcut) {
   return card;
 }
 
-function renderReport(report, target, onOpenRun, onReviewSaved) {
+function renderReport(report, target, onOpenRun, onReviewSaved, onCompare) {
   const overview = element("div");
   const queue = createReviewQueue(report, onOpenRun, (updated) => {
-    overview.replaceChildren(reportSummary(updated, queue.shortcut));
+    overview.replaceChildren(reportSummary(updated, queue.shortcut, onCompare));
     onReviewSaved();
   });
-  overview.append(reportSummary(report, queue.shortcut));
+  overview.append(reportSummary(report, queue.shortcut, onCompare));
   target.replaceChildren(overview, queue.section);
   target.hidden = false;
 }
@@ -127,6 +131,9 @@ export function initializeEvaluations(catalog, onOpenRun) {
 
   const reportList = document.getElementById("report-list");
   const reportOrder = document.getElementById("report-order");
+  const comparison = createComparisonPanel(document.getElementById("evaluation-comparison"), onOpenRun);
+  const compareButton = document.getElementById("open-comparison");
+  compareButton.addEventListener("click", () => comparison.open(null, compareButton));
   let reports = [];
   let selectedRun = null;
   let listRequest = 0;
@@ -145,6 +152,7 @@ export function initializeEvaluations(catalog, onOpenRun) {
       const result = await getJSON("/api/lab/evaluations");
       if (request !== listRequest) return;
       reports = result.evaluations;
+      comparison.setReports(reports);
       renderCampaigns();
     } catch (error) {
       if (request === listRequest) reportList.replaceChildren(element("p", "muted", errorMessage(error)));
@@ -157,7 +165,7 @@ export function initializeEvaluations(catalog, onOpenRun) {
       const report = await getJSON("/api/lab/evaluations/" + encodeURIComponent(runId));
       if (request !== detailRequest) return;
       selectedRun = runId;
-      renderReport(report, detail, onOpenRun, loadReports);
+      renderReport(report, detail, onOpenRun, loadReports, comparison.open);
       renderCampaigns();
       const heading = detail.querySelector("h2");
       heading.tabIndex = -1;

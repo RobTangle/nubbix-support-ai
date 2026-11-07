@@ -83,10 +83,37 @@
                   </select>
                 </label>
                 <button class="button secondary compact" id="refresh-reports" type="button">Actualizar</button>
+                <button class="button primary compact" id="open-comparison" type="button">Comparar resultados</button>
               </div>
             </div>
             <p class="report-list-note">Compará campañas con el mismo corpus y alcance. La exactitud se calcula sobre los casos etiquetados; un bloqueo puede ser esperado en un ataque.</p>
             <div id="report-list" class="report-list"><p class="muted">Cargando reportes…</p></div>
+          </section>
+          <section class="card evaluation-comparison" id="evaluation-comparison" aria-labelledby="comparison-title" hidden>
+            <div class="card-heading">
+              <div><p class="eyebrow">RESULTADOS GUARDADOS</p><h2 id="comparison-title" tabindex="-1">Comparar prompts y modelos</h2></div>
+              <button class="button secondary compact" id="comparison-close" type="button">Cerrar comparación</button>
+            </div>
+            <p class="field-note">Para comparar prompts, elegí el mismo modelo y flujo. Para comparar modelos, elegí el mismo prompt y flujo.</p>
+            <form id="comparison-form">
+              <div class="paired-options">
+                <fieldset>
+                  <legend>Opción A</legend>
+                  <label for="comparison-a-campaign">Campaña A</label><select id="comparison-a-campaign" required></select>
+                  <label for="comparison-a-variant">Variante A</label><select id="comparison-a-variant" required disabled></select>
+                  <p class="field-note paired-option-meta" id="comparison-a-meta"></p>
+                </fieldset>
+                <fieldset>
+                  <legend>Opción B</legend>
+                  <label for="comparison-b-campaign">Campaña B</label><select id="comparison-b-campaign" required></select>
+                  <label for="comparison-b-variant">Variante B</label><select id="comparison-b-variant" required disabled></select>
+                  <p class="field-note paired-option-meta" id="comparison-b-meta"></p>
+                </fieldset>
+              </div>
+              <button class="button primary compact" id="comparison-submit" type="submit" disabled>Comparar selección</button>
+            </form>
+            <p class="execution-status" id="comparison-state" role="status"></p>
+            <div id="comparison-output"></div>
           </section>
           <div id="report-detail" class="report-detail" hidden></div>
         </section>
