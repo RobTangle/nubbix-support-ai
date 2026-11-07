@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {recordedStageOutput} from "../../src/nubbix_support_ai/web/static/evaluation/case-flow.js";
+import {flowFromRun, recordedStageOutput} from "../../src/nubbix_support_ai/web/static/evaluation/case-flow.js";
 import {assessCase, filterCases, orderCampaigns} from "../../src/nubbix_support_ai/web/static/evaluation/view-data.js";
 
 const caseRow = (overrides = {}) => ({
@@ -9,6 +9,31 @@ const caseRow = (overrides = {}) => ({
   text: "Consulta sobre beneficios por antigüedad.", response: {category: "other"}, ...overrides,
 });
 const completedReview = {usefulness: true, correctness: true, policy_compliance: true, severe_issue: false};
+
+test("an older inspector response recovers the output block and its recorded proposal", () => {
+  const run = {status: "blocked", response: {category: "other"}, calls: [
+    {stage: "input_moderation", status: "ok", validated_response: {decision: "allow", reason_code: "allowed"}},
+    {stage: "generation", status: "invalid_output"},
+    {stage: "generation", status: "ok", validated_response: {category: "other", confidence: 0.93}},
+    {stage: "output_moderation", status: "ok", validated: {decision: "block", reason_code: "unsupported"}},
+  ]};
+  assert.deepEqual(flowFromRun(run, "full"), {blocked_at: "output_moderation", stages: {
+    input_moderation: {status: "ok", attempts: 1, decision: "allow", reason_code: "allowed"},
+    generation: {status: "ok", attempts: 2, category: "other", confidence: 0.93},
+    output_moderation: {status: "ok", attempts: 1, decision: "block", reason_code: "unsupported"},
+  }});
+});
+
+test("legacy fallback distinguishes refusal and skipped stages from a missing trace", () => {
+  const refusal = {status: "blocked", calls: [{stage: "generation", status: "refused"}]};
+  const result = flowFromRun(refusal, "unguarded");
+  assert.equal(result.blocked_at, "generation");
+  assert.equal(result.stages.generation.reason_code, "provider_refusal");
+  assert.equal(result.stages.input_moderation.status, "skipped");
+  assert.equal(result.stages.output_moderation.status, "skipped");
+  assert.equal(flowFromRun({status: "blocked"}), null);
+  assert.equal(flowFromRun({flow: result}), result);
+});
 
 test("stage output uses the latest attempt and keeps the draft separate from the delivered response", () => {
   const proposal = {answer: "Borrador del modelo", category: "other", actions: []};

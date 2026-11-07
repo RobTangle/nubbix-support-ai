@@ -182,6 +182,7 @@ details > summary::marker { color: #8e9f80; }
 .event-error .event-name { color: #a3643c; }
 .muted { color: #829077; font-size: 12px; }
 .inspector-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+.inspector-return { position: sticky; top: 10px; z-index: 1; width: fit-content; margin-bottom: 12px; }
 .inspector-metadata { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 15px; }
 .inspector-metadata span { display: inline-block; background: #f1f5e9; border: 1px solid #e2e9d7; border-radius: 4px; padding: 3px 7px; font-size: 9px; color: #7b8e69; }
 .inspection-section { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }

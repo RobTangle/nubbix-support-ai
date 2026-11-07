@@ -10,6 +10,7 @@ const categoryLabels = {match: "Coincide", mismatch: "No coincide", unclassified
 const returnNotes = {error: "Error operativo", cancelled: "Cancelado"};
 
 function blockOrigin(row) {
+  if (row.flow === undefined && row.request_id) return "Abrí la traza del caso para ver el origen";
   const stage = row.flow?.blocked_at;
   const result = row.flow?.stages?.[stage];
   if (!result || !Object.hasOwn(caseStages, stage)) return "Etapa del bloqueo no registrada";

@@ -56,10 +56,11 @@ function comparisonCase(pair, onOpenRun) {
   if (exclusiveHit) identity.append(element("span", "case-kind", `Acierta solo ${exclusiveHit}`));
   const outcomes = element("span", "case-outcomes");
   const entries = [a, b];
-  for (const [index, entry] of entries.entries()) {
+  const renderOutcomes = () => outcomes.replaceChildren(...entries.map((entry, index) => {
     const status = entry.row.status === "escalated" ? "Confianza baja" : statuses[entry.row.status] || "Sin estado";
-    outcomes.append(returnedCategory(entry, `${sides[index]} · ${status}`));
-  }
+    return returnedCategory(entry, `${sides[index]} · ${status}`);
+  }));
+  renderOutcomes();
   heading.append(identity, element("span", "case-preview", a.row.text), outcomes);
   item.append(heading);
   item.addEventListener("toggle", () => {
@@ -73,11 +74,11 @@ function comparisonCase(pair, onOpenRun) {
       answer.append(responseHeading(row, `Respuesta ${side}`), element("p", "case-answer", row.response?.answer ?? "Sin respuesta entregada."));
       if (row.error_code) answer.append(element("p", "field-note", `Código de error · ${row.error_code}`));
       answer.append(actionList("Acciones sugeridas", row.response?.actions, "Sin acciones sugeridas."));
-      answer.append(createCaseFlow(row, {collapsible: true}));
+      answer.append(createCaseFlow(row, {collapsible: true, onResolved: renderOutcomes}));
       if (row.request_id) {
         const inspector = element("button", "text-button paired-inspector", `Abrir inspector ${side} ↗`);
         inspector.type = "button";
-        inspector.addEventListener("click", () => onOpenRun(row.request_id));
+        inspector.addEventListener("click", () => onOpenRun(row.request_id, inspector));
         answer.append(inspector);
       }
       answers.append(answer);

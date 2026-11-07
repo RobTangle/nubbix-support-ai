@@ -12,11 +12,43 @@ const moderationEffects = {
 };
 let nextPanelId = 0;
 
+function validatedOutput(call) {
+  return call.status === "ok" ? call.validated_response ?? call.validated ?? null : null;
+}
+
 export function recordedStageOutput(run, stage) {
-  const call = (run.calls || []).findLast((item) => item.stage === stage);
+  const call = (run.calls || []).findLast((item) => item?.stage === stage);
   if (!call) return null;
-  const validated = call.status === "ok" ? call.validated_response ?? call.validated ?? null : null;
-  return {attempt: call.attempt, status: call.status, validated, raw: call.response_text ?? null};
+  return {attempt: call.attempt, status: call.status, validated: validatedOutput(call), raw: call.response_text ?? null};
+}
+
+export function flowFromRun(run, arm) {
+  if (run.flow?.stages) return run.flow;
+  if (!Array.isArray(run.calls)) return null;
+  const unguarded = (arm || run.evaluation_arm) === "unguarded";
+  const stages = {};
+  const blockers = [];
+  for (const stage of Object.keys(caseStages)) {
+    const attempts = run.calls.filter((call) => call?.stage === stage);
+    const last = attempts.at(-1);
+    if (!last) {
+      stages[stage] = {status: unguarded && stage !== "generation" ? "skipped" : "not_run", attempts: 0};
+      continue;
+    }
+    const status = last.status || "unknown";
+    const result = {status, attempts: attempts.length};
+    const validated = validatedOutput(last);
+    if (validated) {
+      const keys = stage === "generation" ? ["category", "confidence"] : ["decision", "reason_code"];
+      for (const key of keys) if (Object.hasOwn(validated, key)) result[key] = validated[key];
+    }
+    if (status === "refused") result.reason_code = "provider_refusal";
+    if (last.error_code) result.error_code = last.error_code;
+    if (status === "refused" || result.decision === "block" || result.decision === "review") blockers.push(stage);
+    stages[stage] = result;
+  }
+  const blocked_at = run.status === "blocked" && blockers.length === 1 ? blockers[0] : null;
+  return {stages, blocked_at};
 }
 
 function stageCard(stage, result, stoppedHere) {
@@ -118,7 +150,7 @@ function createOutputPanel(loadRun, flow) {
   }
 }
 
-export function createCaseFlow(row, {collapsible = false} = {}) {
+export function createCaseFlow(row, {collapsible = false, onResolved = () => {}} = {}) {
   const section = element(collapsible ? "details" : "section", "case-flow");
   section.append(element(collapsible ? "summary" : "h3", "", "Qué devolvió cada etapa"));
   const content = element("div");
@@ -139,13 +171,22 @@ export function createCaseFlow(row, {collapsible = false} = {}) {
 
   async function populate() {
     let flow = row.flow;
-    if (!flow && row.request_id) {
-      content.append(element("p", "field-note", "Leyendo la traza registrada…"));
+    if (!flow?.stages && flow !== null && row.request_id) {
+      content.replaceChildren(element("p", "field-note", "Leyendo la traza registrada…"));
       try {
-        flow = (await loadRun()).flow;
-      } catch {
+        flow = flowFromRun(await loadRun(), row.arm);
+      } catch (error) {
+        if (error.code !== "run_not_found") {
+          const retry = element("button", "text-button", "Reintentar lectura de la traza");
+          retry.type = "button";
+          retry.addEventListener("click", () => void populate());
+          content.replaceChildren(element("p", "field-note", "No se pudo leer la traza de esta ejecución."), retry);
+          return;
+        }
         flow = null;
       }
+      row.flow = flow;
+      onResolved();
     }
     if (!flow?.stages) {
       content.replaceChildren(element("p", "field-note", "No hay una traza local disponible para esta ejecución."));

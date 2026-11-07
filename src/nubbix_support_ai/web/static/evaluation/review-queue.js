@@ -83,7 +83,8 @@ function caseBody(entry, onOpenRun, onSubmit) {
   const metadata = element("div", "inspector-metadata");
   metadata.append(statusBadge(row.status));
   body.append(metadata, element("h3", "", "Consulta"), element("p", "case-ticket", row.text));
-  body.append(createCaseFlow(row), responseHeading(row), element("p", "case-answer", row.response?.answer ?? "Sin respuesta entregada."));
+  body.append(createCaseFlow(row, {onResolved: () => updateCaseSummary(entry)}),
+    responseHeading(row), element("p", "case-answer", row.response?.answer ?? "Sin respuesta entregada."));
   if (row.error_code) body.append(element("p", "field-note", `Error operativo: ${row.error_code}`));
   const actions = element("div", "case-evidence");
   actions.append(actionList("Acciones esperadas", row.expected_actions, "Sin acciones de referencia."),
@@ -92,7 +93,7 @@ function caseBody(entry, onOpenRun, onSubmit) {
   if (row.request_id) {
     const inspector = element("button", "text-button", "Abrir inspector de esta ejecución ↗");
     inspector.type = "button";
-    inspector.addEventListener("click", () => onOpenRun(row.request_id));
+    inspector.addEventListener("click", () => onOpenRun(row.request_id, inspector));
     body.append(inspector);
   }
   jsonSection(body, "Respuesta, consumo y señales del caso", row);

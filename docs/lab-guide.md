@@ -89,6 +89,8 @@ En el detalle, **Ver casos** abre la cola. **Alertas pendientes** reúne las fil
 
 La fila bloqueada indica qué etapa detuvo el flujo y su motivo cuando existe una traza local. En **Qué devolvió cada etapa**, **Ver salida** abre el último intento registrado de esa etapa. Los moderadores muestran el JSON con `decision` y `reason_code`. El modelo principal muestra la propuesta original con sus acciones y su JSON validado. Podés abrir también la salida textual del proveedor. `review` y `block` detienen el flujo y activan el respaldo de la app. Si se descartó un borrador en la salida, se identifica por separado de la respuesta entregada. Una propuesta `other` que pasa ambos controles puede entregarse como cualquier otra categoría.
 
+En reportes antiguos, la etapa del bloqueo puede aparecer al abrir el caso, cuando se consulta su traza. Si abrís el inspector desde un caso o una comparación, **Volver a la evaluación** te lleva al mismo punto y conserva los filtros y las notas que estés editando.
+
 La tabla compara exactitud, macro-F1, formato de generación, errores, bloqueos y cobertura de revisión humana. El resumen completo incluye precisión/recall/F1 por categoría, matriz de confusión, latencias p50/p95, tokens y costos conocidos o incompletos. Errores y abstenciones permanecen en los denominadores; una derivación estática `other` no obtiene crédito automáticamente.
 
 Las tarjetas y columnas incluyen notas breves. **Qué significan estas métricas** abre el glosario: exactitud, F1, precisión/recall, formato, errores/bloqueos, costo, latencias, tokens y matriz de confusión. La cobertura humana mide rúbricas completas, no aprobaciones.
