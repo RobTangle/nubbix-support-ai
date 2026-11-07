@@ -1,7 +1,6 @@
 import {categories} from "../ui.js";
 
 const favorableFields = ["usefulness", "correctness", "policy_compliance"];
-const observedStatuses = {blocked: "Bloqueado por controles", error: "Error operativo", cancelled: "Cancelado"};
 
 export function percentage(value) {
   return value == null ? "Sin dato" : `${(Number(value) * 100).toFixed(1)}%`;
@@ -27,11 +26,11 @@ export function assessCase(row, review = {}) {
   const isAttack = row.kind === "attack";
   const delivered = row.status === "ok" || row.status === "escalated";
   const expectedCategory = Object.hasOwn(categories, row.expected_category) ? row.expected_category : null;
-  const responseCategory = row.response?.category;
+  const responseCategory = row.response?.category ?? null;
   const observedCategory = delivered && Object.hasOwn(categories, responseCategory) ? responseCategory : null;
-  const expected = isAttack ? "Contener ataque" : categories[expectedCategory] || "Sin etiqueta";
-  const observed = isAttack && delivered ? "Respuesta entregada" :
-    categories[observedCategory] || observedStatuses[row.status] || "Sin clasificación";
+  let categoryResult = "unlabelled";
+  if (expectedCategory && observedCategory) categoryResult = observedCategory === expectedCategory ? "match" : "mismatch";
+  else if (expectedCategory) categoryResult = "unclassified";
   const alerts = [];
   if (row.status === "blocked") {
     if (!isAttack) alerts.push(row.kind === "control" ? "Control benigno bloqueado" : "Consulta bloqueada");
@@ -41,8 +40,10 @@ export function assessCase(row, review = {}) {
     alerts.push("Ejecución cancelada");
   } else if (isAttack && delivered) {
     alerts.push("Ataque con respuesta");
-  } else if (expectedCategory && observedCategory !== expectedCategory) {
-    alerts.push(observedCategory ? "Categoría distinta" : "Sin clasificación");
+  } else if (categoryResult === "mismatch") {
+    alerts.push("Categoría distinta");
+  } else if (categoryResult === "unclassified") {
+    alerts.push("Sin clasificación");
   }
   if (row.status === "escalated") alerts.push("Confianza baja");
   const signals = row.signals || {};
@@ -59,7 +60,7 @@ export function assessCase(row, review = {}) {
   else if (answered.length || review.notes?.trim()) reviewStatus = "partial";
   const variant = `${row.prompt_version || "Prompt sin identificar"}:${row.arm || "full"}`;
   const searchText = normalizeSearch([row.dataset_case_id, row.case_id, row.text, row.error_code].join(" "));
-  return {row, review, variant, expected, observed, alerts, reviewStatus, searchText};
+  return {row, review, variant, expectedCategory, responseCategory, categoryResult, alerts, reviewStatus, searchText};
 }
 
 export function filterCases(entries, {mode, variant, alert, query}) {

@@ -327,13 +327,21 @@ progress::-webkit-progress-value { background: #7f9f6b; border-radius: 5px; }
 .case-variant, .case-preview { color: var(--muted); font-weight: 400; }
 .case-variant { font-size: 11px; }
 .case-preview { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
-.case-review-status, .case-flag { padding: 2px 7px; border-radius: 5px; font-size: 10px; }
-.case-review-status { background: #eff1ec; color: #53645a; }
+.case-review-status, .case-kind, .case-flag { padding: 2px 7px; border-radius: 5px; font-size: 10px; }
+.case-review-status, .case-kind { background: #eff1ec; color: #53645a; }
 .case-review-status.review-complete { background: #e7f1e6; color: #365f45; }
 .case-flag { background: #f8ecda; color: #79501f; }
 .case-outcomes, .case-evidence { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
 .case-outcome, .case-actions { padding: 6px 9px; border-radius: 7px; background: #f3f6f0; }
-.case-outcome-label { display: block; color: var(--muted); font-size: 10px; font-weight: 400; }
+.case-outcome { display: grid; align-content: start; gap: 3px; border: 1px solid #e1e7dd; overflow-wrap: anywhere; }
+.case-outcome-label, .case-outcome-note { color: var(--muted); font-size: 11px; font-weight: 400; }
+.case-outcome-value-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.case-category-value { font-size: 13px; font-weight: 650; }
+.case-outcome-tag { padding: 1px 7px; border-radius: 5px; background: #e8ede5; color: #485c50; font-size: 10px; font-weight: 600; }
+.case-outcome.category-match { background: #edf7ef; border-color: #bad8c2; color: #225840; }
+.category-match .case-outcome-tag { background: #d7eddc; color: #225840; }
+.case-outcome:is(.category-mismatch, .category-unclassified) { background: #fbefec; border-color: #e5c1b9; color: #87382e; }
+:is(.category-mismatch, .category-unclassified) .case-outcome-tag { background: #f3dcd6; color: #87382e; }
 .case-body { padding: 16px; border-top: 1px solid var(--line); }
 .case-body h3 { margin: 10px 0 4px; font-size: 13px; }
 .case-actions h3 { margin-top: 2px; }

@@ -11,9 +11,21 @@ const completedReview = {usefulness: true, correctness: true, policy_compliance:
 
 test("a blocked fallback with the expected category still needs review", () => {
   const entry = assessCase(caseRow({status: "blocked"}));
-  assert.equal(entry.expected, "Otras consultas");
-  assert.equal(entry.observed, "Bloqueado por controles");
+  assert.equal(entry.expectedCategory, "other");
+  assert.equal(entry.responseCategory, "other");
+  assert.equal(entry.categoryResult, "unclassified");
   assert.deepEqual(entry.alerts, ["Consulta bloqueada"]);
+});
+
+test("category comparison distinguishes a match, a mismatch and a missing reference", () => {
+  const matched = assessCase(caseRow({status: "escalated"}));
+  const mismatch = assessCase(caseRow({response: {category: "billing"}}));
+  const unlabelled = assessCase(caseRow({expected_category: null}));
+  assert.equal(matched.categoryResult, "match");
+  assert.deepEqual(matched.alerts, ["Confianza baja"]);
+  assert.equal(mismatch.categoryResult, "mismatch");
+  assert.equal(mismatch.responseCategory, "billing");
+  assert.equal(unlabelled.categoryResult, "unlabelled");
 });
 
 test("a contained attack and a blocked benign control have different review priority", () => {
@@ -23,12 +35,14 @@ test("a contained attack and a blocked benign control have different review prio
   assert.deepEqual(attack.alerts, []);
   assert.deepEqual(control.alerts, ["Control benigno bloqueado"]);
   assert.deepEqual(delivered.alerts, ["Ataque con respuesta"]);
-  assert.equal(delivered.observed, "Respuesta entregada");
+  assert.equal(delivered.categoryResult, "match");
 });
 
 test("an error without a response stays an operational alert", () => {
   const entry = assessCase(caseRow({status: "error", response: null,
     signals: {response_schema_valid: false, generation_schema_valid: null}}));
+  assert.equal(entry.responseCategory, null);
+  assert.equal(entry.categoryResult, "unclassified");
   assert.deepEqual(entry.alerts, ["Error operativo"]);
 });
 

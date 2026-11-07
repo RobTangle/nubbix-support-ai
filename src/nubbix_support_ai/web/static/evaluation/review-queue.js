@@ -5,20 +5,33 @@ import {assessCase, filterCases, reviewFields, variantLabel} from "./view-data.j
 
 const views = {priority: "Alertas pendientes", alerts: "Con alertas", pending: "Revisión pendiente", all: "Todos"};
 const reviewLabels = {pending: "Sin revisar", partial: "Revisión parcial", complete: "Revisado"};
+const caseKinds = {attack: "Ataque", control: "Control benigno"};
+const categoryLabels = {match: "Coincide", mismatch: "No coincide", unclassified: "Sin clasificación", unlabelled: "Sin referencia"};
+const returnNotes = {blocked: "Bloqueado por controles", error: "Error operativo", cancelled: "Cancelado"};
 
 function updateCaseSummary(entry) {
-  const {row, summary, node} = entry;
+  const {row, summary, node, expectedCategory, responseCategory, categoryResult} = entry;
   node.classList.toggle("has-alert", entry.alerts.length > 0);
   const identity = element("span", "case-identity");
   identity.append(element("strong", "case-id", row.dataset_case_id || row.case_id),
     element("span", "case-variant", variantLabel(entry.variant)),
     element("span", `case-review-status review-${entry.reviewStatus}`, reviewLabels[entry.reviewStatus]));
+  if (caseKinds[row.kind]) identity.append(element("span", "case-kind", caseKinds[row.kind]));
   const outcomes = element("span", "case-outcomes");
-  for (const [label, value] of [["Esperado", entry.expected], ["Observado", entry.observed]]) {
-    const outcome = element("span", "case-outcome");
-    outcome.append(element("span", "case-outcome-label", label), element("strong", "", value));
-    outcomes.append(outcome);
+  const expected = element("span", "case-outcome");
+  expected.append(element("span", "case-outcome-label", "Categoría esperada"),
+    element(expectedCategory ? "code" : "span", "case-category-value", expectedCategory || "Sin etiqueta"));
+  const returned = element("span", `case-outcome category-${categoryResult}`);
+  const valueLine = element("span", "case-outcome-value-line");
+  const returnedValue = responseCategory || (row.response ? "Sin categoría" : "Sin respuesta");
+  valueLine.append(element(responseCategory ? "code" : "span", "case-category-value", returnedValue),
+    element("span", "case-outcome-tag", categoryLabels[categoryResult]));
+  returned.append(element("span", "case-outcome-label", "Categoría devuelta"), valueLine);
+  if (returnNotes[row.status]) {
+    const note = row.status === "blocked" && row.response ? "Bloqueado por controles · respuesta de respaldo" : returnNotes[row.status];
+    returned.append(element("span", "case-outcome-note", note));
   }
+  outcomes.append(expected, returned);
   summary.replaceChildren(identity, element("span", "case-preview", row.text), outcomes);
   if (entry.alerts.length) {
     const flags = element("span", "case-flags");
@@ -92,8 +105,7 @@ function caseBody(entry, onOpenRun, onSubmit) {
   const {row} = entry;
   const body = element("div", "case-body");
   const metadata = element("div", "inspector-metadata");
-  const kinds = {attack: "Ataque", control: "Control benigno", ticket: "Ticket"};
-  metadata.append(statusBadge(row.status), element("span", "", kinds[row.kind] || "Ticket"));
+  metadata.append(statusBadge(row.status));
   body.append(metadata, element("h3", "", "Consulta"), element("p", "case-ticket", row.text));
   body.append(element("h3", "", "Respuesta entregada"), element("p", "case-answer", row.response?.answer ?? "Sin respuesta entregada."));
   if (row.error_code) body.append(element("p", "field-note", `Error operativo: ${row.error_code}`));
@@ -179,7 +191,7 @@ export function createReviewQueue(report, onOpenRun, onSaved) {
   }
   const count = element("p", "case-count");
   count.setAttribute("role", "status");
-  toolbar.append(toolbarHeader, element("p", "field-note", "Las alertas reúnen diferencias de categoría, fallos, consultas bloqueadas y señales que conviene comprobar."),
+  toolbar.append(toolbarHeader, element("p", "field-note", "El color indica si la categoría coincide. Usá las alertas para localizar bloqueos, errores y otros casos que requieren revisión."),
     filters, tabs, count);
   const empty = element("p", "case-empty");
   const list = element("div", "case-list");
