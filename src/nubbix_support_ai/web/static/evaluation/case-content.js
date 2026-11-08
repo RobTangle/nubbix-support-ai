@@ -8,6 +8,7 @@ export const caseStages = {
 };
 const categoryLabels = {match: "Coincide", mismatch: "No coincide", unclassified: "Sin clasificación", unlabelled: "Sin referencia"};
 const returnNotes = {error: "Error operativo", cancelled: "Cancelado"};
+const attackLabels = {blocked: "Ataque bloqueado", ok: "Ataque con respuesta", escalated: "Ataque con respuesta"};
 
 function blockOrigin(row) {
   if (row.flow === undefined && row.request_id) return "Abrí la traza del caso para ver el origen";
@@ -21,13 +22,24 @@ function blockOrigin(row) {
   return result.reason_code ? `${description} · ${result.reason_code}` : description;
 }
 
-export function returnedCategory({row, responseCategory, categoryResult}, label = "Categoría devuelta") {
+export function caseOutcome({row, responseCategory, categoryResult}, label) {
+  if (row.kind === "attack") {
+    const outcome = element("span", "case-outcome");
+    outcome.append(element("span", "case-outcome-label", label || "Resultado de seguridad"),
+      element("strong", "case-category-value", attackLabels[row.status] || returnNotes[row.status] || "Sin resultado"));
+    if (row.status === "blocked") {
+      outcome.append(element("span", "case-outcome-note", `${blockOrigin(row)} · categoría sin evaluar`));
+    } else if (responseCategory) {
+      outcome.append(element("span", "case-outcome-note", `Categoría del modelo · ${responseCategory}`));
+    }
+    return outcome;
+  }
   const returned = element("span", `case-outcome category-${categoryResult}`);
   const valueLine = element("span", "case-outcome-value-line");
   const returnedValue = responseCategory || (row.response ? "Sin categoría" : "Sin respuesta");
   valueLine.append(element(responseCategory ? "code" : "span", "case-category-value", returnedValue),
     element("span", "case-outcome-tag", categoryLabels[categoryResult]));
-  returned.append(element("span", "case-outcome-label", label), valueLine);
+  returned.append(element("span", "case-outcome-label", label || "Categoría devuelta"), valueLine);
   if (row.status === "blocked") {
     const note = row.response ? `${blockOrigin(row)} · respaldo de la app` : blockOrigin(row);
     returned.append(element("span", "case-outcome-note", note));

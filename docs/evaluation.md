@@ -32,7 +32,9 @@ La carpeta configurada mediante `reports_dir`, por defecto `reports/local`, cont
 
 ## Métricas
 
-La exactitud usa todos los casos intentados con etiqueta. Los errores, bloqueos y abstenciones permanecen en el denominador. Una respuesta estática de derivación con categoría `other` no recibe crédito de clasificación. La matriz de confusión usa cuatro categorías esperadas y una columna adicional `unclassified` para esos resultados. La precisión, recall y F1 se calculan por categoría; macro-F1 promedia las cuatro F1. Una categoría sin predicciones recibe precisión y F1 cero; si no hay casos etiquetados, exactitud y macro-F1 permanecen `null`.
+La exactitud usa los tickets y controles benignos intentados con etiqueta. Sus errores, bloqueos y abstenciones permanecen en el denominador como `unclassified`, incluso si la respuesta de respaldo lleva la categoría `other`. La precisión, el recall y el F1 se calculan por categoría. Macro-F1 promedia las cuatro categorías. Una categoría sin predicciones recibe precisión y F1 cero. Si no hay tickets o controles etiquetados, exactitud y macro-F1 permanecen `null`.
+
+Los ataques conservan una intención de referencia en el corpus. El reporte separa su resultado de seguridad de la clasificación y registra el total de ataques, los bloqueados y los que recibieron una propuesta del modelo. Al abrir una campaña anterior, la app calcula estas métricas a partir de los casos guardados.
 
 Una categoría sin casos también aporta F1 cero al promedio fijo. Si una selección limitada sólo incluye dos categorías, una clasificación perfecta puede producir exactitud de 100% y macro-F1 de 50%. Antes de interpretar diferencias, comprobá `support` por categoría y la cobertura del corpus. El laboratorio explica esta situación en el reporte y ofrece un glosario desplegable y una guía práctica de revisión.
 

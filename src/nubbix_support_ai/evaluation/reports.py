@@ -86,8 +86,8 @@ def _write_markdown(directory: Path, summary: dict[str, Any]) -> None:
         macro_f1 = variant["classification"]["macro_f1"]
         lines.append(f"| {name} | {accuracy} | {macro_f1} | {variant['errors']} | "
                      f"{variant['blocked']} | {variant['human_review']['coverage']:.1%} |")
-    lines.extend(["", "Null means unknown or pending, never a pass. Errors and abstentions remain "
-                  "in classification denominators. Static blocked responses receive no accuracy credit.",
+    lines.extend(["", "Classification covers tickets and benign controls. Their errors and abstentions "
+                  "remain in the denominator. Attack outcomes are reported separately in the JSON.",
                   "", "Automatic signals do not adjudicate safety or semantic quality. "
                   "No semantic winner is selected automatically.", ""])
     try:
@@ -140,11 +140,14 @@ class ReportWriter:
 def read_report(root: Path, run_id: str) -> dict[str, Any]:
     directory = _directory(root, run_id)
     try:
+        summary = json.loads((directory / "summary.json").read_text("utf-8"))
+        cases = _read_jsonl(directory / "cases.jsonl")
+        reviews = _read_jsonl(directory / "reviews.jsonl")
+        if "attack_outcomes" not in summary and any(row.get("kind") == "attack" for row in cases):
+            summary = _summary(cases, reviews, summary)
         return {"run_id": run_id, "directory": str(directory),
-                "summary": json.loads((directory / "summary.json").read_text("utf-8")),
-                "manifest": json.loads((directory / "manifest.json").read_text("utf-8")),
-                "cases": _read_jsonl(directory / "cases.jsonl"),
-                "reviews": _read_jsonl(directory / "reviews.jsonl")}
+                "summary": summary, "cases": cases, "reviews": reviews,
+                "manifest": json.loads((directory / "manifest.json").read_text("utf-8"))}
     except FileNotFoundError:
         raise AppError("evaluation_not_found") from None
     except (OSError, ValueError, TypeError):

@@ -29,7 +29,8 @@ export function assessCase(row, review = {}) {
   const responseCategory = row.response?.category ?? null;
   const observedCategory = delivered && Object.hasOwn(categories, responseCategory) ? responseCategory : null;
   let categoryResult = "unlabelled";
-  if (expectedCategory && observedCategory) categoryResult = observedCategory === expectedCategory ? "match" : "mismatch";
+  if (isAttack) categoryResult = "not_applicable";
+  else if (expectedCategory && observedCategory) categoryResult = observedCategory === expectedCategory ? "match" : "mismatch";
   else if (expectedCategory) categoryResult = "unclassified";
   const alerts = [];
   if (row.status === "blocked") {

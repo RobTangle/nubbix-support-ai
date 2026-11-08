@@ -14,7 +14,7 @@ function caseKey(row) {
 function counts(entries) {
   const stats = {labelled: 0, correct: 0, blocked: 0, errors: 0};
   for (const entry of entries) {
-    if (entry.expectedCategory) stats.labelled += 1;
+    if (entry.categoryResult !== "not_applicable" && entry.expectedCategory) stats.labelled += 1;
     if (entry.categoryResult === "match") stats.correct += 1;
     if (entry.row.status === "blocked") stats.blocked += 1;
     if (entry.row.status === "error") stats.errors += 1;
@@ -73,7 +73,8 @@ export function compareVariants(reportA, variantA, reportB, variantB) {
   }
   return {
     pairs, onlyA: rowsA.length - pairs.length, onlyB: rowsB.length - pairs.length,
-    categories: [...new Set(pairs.map(({a}) => a.expectedCategory).filter(Boolean))].sort(),
+    categories: [...new Set(pairs.filter(({a}) => a.categoryResult !== "not_applicable")
+      .map(({a}) => a.expectedCategory).filter(Boolean))].sort(),
     statsA: counts(pairs.map(({a}) => a)), statsB: counts(pairs.map(({b}) => b)),
     changes: recordedChanges(reportA, variantA, reportB, variantB),
   };

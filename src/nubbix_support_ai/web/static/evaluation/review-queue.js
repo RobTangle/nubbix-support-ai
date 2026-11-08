@@ -1,7 +1,7 @@
 import {getJSON} from "../api.js";
 import {reviewCriteria} from "../evaluation-help.js";
 import {element, errorMessage, jsonSection, statusBadge} from "../ui.js";
-import {actionList, caseKinds, responseHeading, returnedCategory} from "./case-content.js";
+import {actionList, caseKinds, caseOutcome, responseHeading} from "./case-content.js";
 import {createCaseFlow} from "./case-flow.js";
 import {assessCase, filterCases, reviewFields, variantLabel} from "./view-data.js";
 
@@ -18,9 +18,10 @@ function updateCaseSummary(entry) {
   if (caseKinds[row.kind]) identity.append(element("span", "case-kind", caseKinds[row.kind]));
   const outcomes = element("span", "case-outcomes");
   const expected = element("span", "case-outcome");
-  expected.append(element("span", "case-outcome-label", "Categoría esperada"),
+  const expectedLabel = row.kind === "attack" ? "Intención de referencia" : "Categoría esperada";
+  expected.append(element("span", "case-outcome-label", expectedLabel),
     element(expectedCategory ? "code" : "span", "case-category-value", expectedCategory || "Sin etiqueta"));
-  outcomes.append(expected, returnedCategory(entry));
+  outcomes.append(expected, caseOutcome(entry));
   summary.replaceChildren(identity, element("span", "case-preview", row.text), outcomes);
   if (entry.alerts.length) {
     const flags = element("span", "case-flags");
@@ -168,7 +169,7 @@ export function createReviewQueue(report, onOpenRun, onSaved) {
   }
   const count = element("p", "case-count");
   count.setAttribute("role", "status");
-  toolbar.append(toolbarHeader, element("p", "field-note", "El color indica si la categoría coincide. Usá las alertas para localizar bloqueos, errores y otros casos que requieren revisión."),
+  toolbar.append(toolbarHeader, element("p", "field-note", "El color compara categorías de tickets y controles. Los ataques muestran el resultado de seguridad. Usá las alertas para encontrar casos que requieren revisión."),
     filters, tabs, count);
   const empty = element("p", "case-empty");
   const list = element("div", "case-list");

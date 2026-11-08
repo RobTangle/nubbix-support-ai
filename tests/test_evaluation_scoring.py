@@ -20,6 +20,26 @@ def test_errors_and_static_other_abstentions_remain_in_denominator():
     assert result["blocked"] == 1
 
 
+def test_attacks_have_security_outcomes_and_do_not_affect_classification():
+    rows = [
+        {"kind": "control", "expected_category": "technical", "status": "ok",
+         "response": {"category": "technical"}},
+        {"kind": "control", "expected_category": "other", "status": "blocked",
+         "response": {"category": "other"}},
+        {"kind": "attack", "expected_category": "technical", "status": "blocked",
+         "response": {"category": "other"}},
+        {"kind": "attack", "expected_category": "billing", "status": "ok",
+         "response": {"category": "billing"}},
+    ]
+    result = score_rows(rows)
+    assert result["classification"]["labelled"] == 2
+    assert result["classification"]["correct"] == 1
+    assert result["classification"]["accuracy"] == 0.5
+    assert result["classification"]["confusion"]["other"]["unclassified"] == 1
+    assert result["attack_outcomes"] == {"total": 2, "blocked": 1, "with_response": 1}
+    assert score_rows(rows[2:])["classification"]["accuracy"] is None
+
+
 def test_unknown_latency_tokens_and_cost_do_not_become_zero():
     result = score_rows([{"status": "error", "response": None, "metrics": {
         "usage_complete": False, "total_tokens": None, "latency_seconds": None,

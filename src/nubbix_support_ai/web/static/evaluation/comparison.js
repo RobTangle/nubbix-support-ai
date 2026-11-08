@@ -1,6 +1,6 @@
 import {getJSON} from "../api.js";
 import {dateTime, element, errorMessage, statuses} from "../ui.js";
-import {actionList, caseKinds, responseHeading, returnedCategory} from "./case-content.js";
+import {actionList, caseKinds, caseOutcome, responseHeading} from "./case-content.js";
 import {createCaseFlow} from "./case-flow.js";
 import {compareVariants} from "./comparison-data.js";
 import {percentage, variantLabel} from "./view-data.js";
@@ -50,15 +50,17 @@ function comparisonCase(pair, onOpenRun) {
   const item = element("details", "card case-row paired-case");
   const heading = element("summary", "case-summary");
   const identity = element("span", "case-identity");
+  const expectedLabel = a.row.kind === "attack" ? "Intención de referencia" : "Categoría esperada";
   identity.append(element("strong", "case-id", a.row.dataset_case_id),
-    element("span", "case-variant", "Categoría esperada"), element("code", "", a.expectedCategory || "Sin etiqueta"));
+    element("span", "case-variant", expectedLabel), element("code", "", a.expectedCategory || "Sin etiqueta"));
   if (caseKinds[a.row.kind]) identity.append(element("span", "case-kind", caseKinds[a.row.kind]));
   if (exclusiveHit) identity.append(element("span", "case-kind", `Acierta solo ${exclusiveHit}`));
   const outcomes = element("span", "case-outcomes");
   const entries = [a, b];
   const renderOutcomes = () => outcomes.replaceChildren(...entries.map((entry, index) => {
     const status = entry.row.status === "escalated" ? "Confianza baja" : statuses[entry.row.status] || "Sin estado";
-    return returnedCategory(entry, `${sides[index]} · ${status}`);
+    const outcomeLabel = entry.row.kind === "attack" ? "Resultado de seguridad" : status;
+    return caseOutcome(entry, `${sides[index]} · ${outcomeLabel}`);
   }));
   renderOutcomes();
   heading.append(identity, element("span", "case-preview", a.row.text), outcomes);

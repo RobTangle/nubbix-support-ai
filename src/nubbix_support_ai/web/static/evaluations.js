@@ -16,10 +16,14 @@ function summaryCard(key, value, note) {
 function comparisonTable(variants) {
   const wrapper = element("div", "table-scroll");
   const table = element("table", "comparison-table");
+  const rows = Object.entries(variants || {});
+  const hasAttacks = rows.some(([, variant]) => variant.attack_outcomes?.total > 0);
   table.append(element("caption", "", "Comparación automática por versión y brazo"));
   const head = element("thead");
   const header = element("tr");
-  for (const key of ["variant", "accuracy", "macro_f1", "generation_json", "errors_blocks", "human"]) {
+  const columns = ["variant", "accuracy", "macro_f1", "generation_json", "errors_blocks", "human"];
+  if (hasAttacks) columns.splice(-1, 0, "attack_blocks");
+  for (const key of columns) {
     const definition = evaluationMetrics[key];
     const cell = element("th");
     cell.scope = "col";
@@ -28,12 +32,19 @@ function comparisonTable(variants) {
   }
   head.append(header);
   const body = element("tbody");
-  for (const [name, variant] of Object.entries(variants || {})) {
+  for (const [name, variant] of rows) {
     const row = element("tr");
     const nameCell = element("th", "", variantLabel(name));
     nameCell.scope = "row";
     row.append(nameCell);
-    for (const value of [percentage(variant.classification?.accuracy), percentage(variant.classification?.macro_f1), percentage(variant.json_validity?.generation_valid_rate), `${variant.errors || 0} / ${variant.blocked || 0}`, percentage(variant.human_review?.coverage)]) row.append(element("td", "", value));
+    const values = [percentage(variant.classification?.accuracy), percentage(variant.classification?.macro_f1),
+      percentage(variant.json_validity?.generation_valid_rate), `${variant.errors || 0} / ${variant.blocked || 0}`];
+    if (hasAttacks) {
+      const attacks = variant.attack_outcomes;
+      values.push(attacks?.total ? `${attacks.blocked}/${attacks.total}` : "Sin casos");
+    }
+    values.push(percentage(variant.human_review?.coverage));
+    for (const value of values) row.append(element("td", "", value));
     body.append(row);
   }
   table.append(head, body);
@@ -61,7 +72,7 @@ function reportSummary(report, shortcut, onCompare) {
   const grid = element("div", "metrics-grid");
   const human = summary.human_review || {};
   const cost = summary.budget?.committed_usd ?? (summary.cost?.known_usd == null ? null : Number(summary.cost.known_usd) + Number(summary.cost.reserved_unknown_usd || 0));
-  grid.append(summaryCard("accuracy", percentage(summary.classification?.accuracy), `${summary.classification?.correct ?? "—"} de ${summary.classification?.labelled ?? "—"} casos etiquetados · incluye errores y bloqueos`), summaryCard("macro_f1", percentage(summary.classification?.macro_f1), "Promedio de precisión y recall combinados por categoría"), summaryCard("cost", money(cost), `${summary.cost?.incomplete_cases || 0} casos con uso incompleto · incluye reservas`), summaryCard("human", percentage(human.coverage), `${human.complete || 0} rúbricas completas · ${human.pending || 0} pendientes; no es una tasa de aprobación`));
+  grid.append(summaryCard("accuracy", percentage(summary.classification?.accuracy), `${summary.classification?.correct ?? "—"} de ${summary.classification?.labelled ?? "—"} tickets y controles etiquetados`), summaryCard("macro_f1", percentage(summary.classification?.macro_f1), "Promedio de precisión y recall combinados por categoría"), summaryCard("cost", money(cost), `${summary.cost?.incomplete_cases || 0} casos con uso incompleto · incluye reservas`), summaryCard("human", percentage(human.coverage), `${human.complete || 0} rúbricas completas · ${human.pending || 0} pendientes; no es una tasa de aprobación`));
   card.append(grid);
   const coverageNote = classificationCoverageNote(summary.classification);
   if (coverageNote) {
@@ -70,7 +81,7 @@ function reportSummary(report, shortcut, onCompare) {
     card.append(context);
   }
   card.append(comparisonTable(summary.variants), createMetricsGuide());
-  card.append(element("p", "field-note", "La tabla describe clasificación y formato. No se selecciona un ganador de calidad o seguridad automáticamente."));
+  card.append(element("p", "field-note", "La clasificación se calcula sobre tickets y controles benignos. Evaluá el resultado de cada ataque con la traza y la rúbrica."));
   const latency = summary.latency_seconds || {};
   card.append(element("p", "field-note", `Latencia p50: ${latency.p50 == null ? "sin dato" : Number(latency.p50).toFixed(2) + " s"} · p95: ${latency.p95 == null ? "sin dato" : Number(latency.p95).toFixed(2) + " s"} · Tokens conocidos: ${summary.tokens?.known_total ?? "sin dato"}`));
   const reviewLink = element("button", "text-button evaluator-guide-link", "Cómo revisar estos resultados y registrar tu criterio ↑");

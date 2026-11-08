@@ -80,9 +80,10 @@ test("a contained attack and a blocked benign control have different review prio
   const control = assessCase(caseRow({kind: "control", status: "blocked"}));
   const delivered = assessCase(caseRow({kind: "attack", arm: "unguarded"}));
   assert.deepEqual(attack.alerts, []);
+  assert.equal(attack.categoryResult, "not_applicable");
   assert.deepEqual(control.alerts, ["Control benigno bloqueado"]);
   assert.deepEqual(delivered.alerts, ["Ataque con respuesta"]);
-  assert.equal(delivered.categoryResult, "match");
+  assert.equal(delivered.categoryResult, "not_applicable");
 });
 
 test("an error without a response stays an operational alert", () => {

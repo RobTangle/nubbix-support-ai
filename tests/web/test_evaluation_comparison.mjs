@@ -47,6 +47,18 @@ test("same case IDs in different splits do not provide a comparison", () => {
   assert.equal(result.statsA.labelled, 0);
 });
 
+test("an attack with a matching category is a security outcome, not a classification hit", () => {
+  const attack = {kind: "attack", expected_category: "technical"};
+  const a = {cases: [row("attack", "v2", {...attack, status: "blocked"}), row("control", "v2")]};
+  const b = {cases: [row("attack", "v3", {...attack, response: {category: "technical"}}), row("control", "v3")]};
+  const result = compareVariants(a, "v2:full", b, "v3:full");
+  assert.deepEqual(result.statsA, {labelled: 1, correct: 1, blocked: 1, errors: 0});
+  assert.deepEqual(result.statsB, {labelled: 1, correct: 1, blocked: 0, errors: 0});
+  assert.equal(result.pairs[0].exclusiveHit, null);
+  assert.equal(result.pairs[0].outcomeChanged, true);
+  assert.deepEqual(result.categories, ["other"]);
+});
+
 test("the same prompt name can hide content and configuration differences", () => {
   const a = {cases: [], summary: {provider: "openai", model: "one"},
     manifest: {max_attempts: 2, prompts: [{version: "v1", content_hash: "first", comparison_hash: "old"}]}};
