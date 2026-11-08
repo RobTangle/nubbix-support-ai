@@ -103,7 +103,7 @@ async def test_catalog_does_not_initialize_clients_or_disclose_secrets(tmp_path:
     assert "private-test-key" not in response.text
     assert runtime._providers == {}
     assert catalog["default_prompt"] == runtime.catalog.default
-    assert {item["id"] for item in catalog["prompts"]} == {"v1", "v2"}
+    assert catalog["prompts"] == [item.model_dump() for item in runtime.catalog.versions]
     assert catalog["providers"][0]["available"] is True
     assert catalog["providers"][1]["available"] is False
 

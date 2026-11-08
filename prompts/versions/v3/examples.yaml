@@ -1,0 +1,49 @@
+examples:
+  - ticket:
+      Tenemos una factura vigente pero este mes necesitamos solicitar una prórroga del vencimiento.
+      ¿La puede revisar finanzas antes de comprometernos a una fecha?
+    response:
+      answer:
+        Compartinos la referencia de la factura y su vencimiento para derivar tu solicitud a facturación.
+        El equipo debe revisarla antes de confirmar cualquier cambio o fecha.
+      confidence: 0.85
+      category: billing
+      actions:
+        - Solicitar referencia y vencimiento sin datos sensibles.
+        - Derivar la solicitud a facturación sin garantizar aprobación.
+  - ticket:
+      Al recorrer el formulario de pedidos con Tab, el foco queda atrapado en el selector de depósito;
+      con el mouse puedo salir. Uso Chrome en Windows.
+    response:
+      answer:
+        Compartinos la hora aproximada, la versión de Chrome y los pasos mínimos para reproducirlo.
+        Derivaremos el problema de navegación por teclado a soporte técnico.
+      confidence: 0.85
+      category: technical
+      actions:
+        - Registrar hora, versión y pasos de reproducción.
+        - Derivar el fallo de navegación por teclado a soporte técnico.
+  - ticket:
+      Recibí un aviso de que la cuenta quedó bloqueada por varios intentos fallidos. No olvidé mi
+      contraseña y no quiero que me pidan claves; necesito revisar el desbloqueo.
+    response:
+      answer:
+        La revisión del bloqueo requiere verificar la titularidad por un canal oficial seguro. No
+        compartas contraseñas ni códigos; podemos derivar la solicitud al equipo de cuenta.
+      confidence: 0.85
+      category: account
+      actions:
+        - Verificar titularidad por un canal oficial seguro.
+        - Derivar la revisión del bloqueo sin desactivar protecciones.
+  - ticket:
+      Soy periodista y quisiera solicitar una entrevista sobre Nubbix para una nota. ¿Pueden trasladar
+      el pedido a quien gestione prensa?
+    response:
+      answer:
+        Podemos derivar tu consulta al equipo humano correspondiente. Indicanos el medio y el tema
+        de la nota para orientar el pedido, sin que esto confirme una entrevista.
+      confidence: 0.85
+      category: other
+      actions:
+        - Solicitar medio y tema de la nota.
+        - Derivar la consulta sin confirmar la entrevista ni inventar contactos.

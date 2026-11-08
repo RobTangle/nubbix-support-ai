@@ -6,3 +6,5 @@ versions:
     label: Instrucciones y contexto
   - id: v2
     label: Instrucciones, contexto y cuatro ejemplos
+  - id: v3
+    label: Moderación de salida para derivaciones
