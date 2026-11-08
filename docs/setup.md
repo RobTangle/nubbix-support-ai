@@ -20,7 +20,7 @@ WSL ejecuta el Python de Linux. Cloná el repositorio dentro del sistema de arch
 
 ## Usar un entorno existente
 
-Si `.venv` ya tiene instalados el paquete y sus dependencias, ejecutá las líneas de `prompts check` y `web` del bloque de tu shell. Ambas apuntan al Python del entorno y podés ejecutarlas con `.venv` activo o inactivo. [Comandos de inicio](../README.md#1-instalar-y-abrir-el-laboratorio)
+Si `.venv` ya tiene instalados el paquete y sus dependencias, podés verificar los prompts con `prompts check` y pasar a la primera prueba. Los comandos apuntan al Python del entorno. [Instalación](../README.md#1-instalar-la-aplicación) · [Uso con CLI](../README.md#uso-con-cli) · [Abrir el laboratorio](../README.md#primera-prueba-en-el-laboratorio)
 
 Un `.venv` creado por uv puede prescindir de `pip` y ejecutar la aplicación si está instalada. Usá los comandos de instalación con `pip` para un entorno nuevo creado con `venv`.
 

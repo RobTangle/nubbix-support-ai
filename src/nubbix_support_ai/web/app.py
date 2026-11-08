@@ -1,12 +1,14 @@
 import asyncio
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
+from starlette.types import Scope
 
 from nubbix_support_ai.bootstrap import Runtime
 from nubbix_support_ai.config import Settings
@@ -14,6 +16,14 @@ from nubbix_support_ai.support.contracts import AppError
 from nubbix_support_ai.web.evaluations import build_evaluation_router
 from nubbix_support_ai.web.lifecycle import cancel_and_drain
 from nubbix_support_ai.web.routes import STATIC, build_router
+
+
+class LabStaticFiles(StaticFiles):
+    def file_response(self, full_path: str | os.PathLike[str], stat_result: os.stat_result,
+                      scope: Scope, status_code: int = 200) -> Response:
+        response = super().file_response(full_path, stat_result, scope, status_code)
+        response.headers["Cache-Control"] = "no-cache"
+        return response
 
 
 def create_app(settings: Settings, runtime: Runtime | None = None) -> FastAPI:
@@ -53,5 +63,5 @@ def create_app(settings: Settings, runtime: Runtime | None = None) -> FastAPI:
 
     app.include_router(build_router(active_runtime, tasks))
     app.include_router(build_evaluation_router(active_runtime, tasks))
-    app.mount("/static", StaticFiles(directory=STATIC), name="static")
+    app.mount("/static", LabStaticFiles(directory=STATIC), name="static")
     return app

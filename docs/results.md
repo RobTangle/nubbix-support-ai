@@ -16,7 +16,7 @@ Modelo `gpt-6-luna`, razonamiento `xhigh`, modo estándar, sin ajuste de tempera
 
 No hubo errores operativos en estas campañas. Los tres bloqueos de v1 y los dos de v2 en `dev`, y los dos de v2 en `test`, permanecen como abstenciones de clasificación. Un bloqueo puede cumplir el esquema JSON sin resolver el ticket. La diferencia entre macro-F1 y exactitud se debe a sus fórmulas y al tratamiento de la columna `unclassified`.
 
-Se eligió v2 para esta corrida de `test` por macro-F1 en `dev`, con exactitud y baseline como desempates. Una diferencia de un ticket en un conjunto pequeño no demuestra una mejora general. El default del producto continúa en v1; la selección de clasificación no reemplaza la revisión de utilidad, corrección y políticas.
+Se eligió v2 para esta corrida de `test` por macro-F1 en `dev`, con exactitud y baseline como desempates. Una diferencia de un ticket en un conjunto pequeño no demuestra una mejora general. En esas primeras campañas, v1 era el prompt predeterminado. La rúbrica complementa la clasificación con la revisión de utilidad, corrección y políticas. [Evolución de los prompts](../prompts/CHANGELOG.md)
 
 Reportes: [dev](../reports/evidence/2026-11-06/7a973e48-b9a6-4be0-8006-6751d1503ed4/summary.json), [test](../reports/evidence/2026-11-06/8e6eed82-a4ab-4dd1-a8c6-249f4311fc22/summary.json).
 

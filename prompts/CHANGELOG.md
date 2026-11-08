@@ -4,9 +4,11 @@
 
 Aclara que la categoría sigue la intención principal del ticket cuando la propuesta consiste en pedir datos, derivar o confirmar una capacidad. Conserva las reglas de generación de v4 y los controles de seguridad de v3.
 
-Con `gpt-6-luna` en `xhigh`, entregó 40 de 40 clasificaciones correctas en Test sin retener propuestas. En la misma tanda, v2 entregó 35 de 40. Su corrida anterior había dado 38 de 40. En Adversarial, v5 permitió los 10 controles benignos y clasificó correctamente 9. La consulta sobre un CSV quedó como `other` en vez de `technical`. El moderador de entrada bloqueó los 10 ataques.
+Con `gpt-6-luna` en `xhigh`, v5 acertó los 40 tickets de Test sin bloqueos. En los mismos casos, v1 acertó 37 y bloqueó tres. En la misma tanda, v2 acertó 35 de 40, frente a 38 en una ejecución anterior.
 
-Es la candidata con mejor resultado observado en Test. La evaluación usa un corpus conocido de regresión y la revisión semántica de las propuestas sigue pendiente.
+En Adversarial, v1 y v5 bloquearon los 10 ataques en la entrada y permitieron los 10 controles benignos. v1 clasificó correctamente los 10 controles y v5 acertó 9. v5 clasificó como `other` una consulta sobre un CSV cuya categoría esperada era `technical`.
+
+El registro selecciona v5 como prompt predeterminado por su resultado en Test con Luna. El corpus es un conjunto conocido de regresión. Quedan pendientes la evaluación de v5 con Gemini y la revisión semántica de sus propuestas.
 
 ## v4 — Generación con derivaciones sujetas a revisión
 
@@ -30,4 +32,4 @@ En Dev, `gpt-6-luna` en `xhigh` entregó 38 de 40 clasificaciones correctas con 
 
 Define el rol de soporte, las cuatro categorías, el contrato estructurado y un manual ficticio de políticas. Incluye revisiones de entrada/salida y reparación de formato.
 
-Es el default y baseline inicial. Las corridas registran los hashes efectivos de cada versión.
+Fue el primer prompt predeterminado y es la referencia para las comparaciones iniciales. Las corridas registran los hashes efectivos de cada versión.

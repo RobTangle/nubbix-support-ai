@@ -178,12 +178,27 @@ export function initializeEvaluations(catalog, onOpenRun) {
       selectedRun = runId;
       renderReport(report, detail, onOpenRun, loadReports, comparison.open);
       renderCampaigns();
+      if (detail.closest("[hidden]")) return;
       const heading = detail.querySelector("h2");
       heading.tabIndex = -1;
       heading.focus({preventScroll: true});
       detail.scrollIntoView({block: "start"});
     } catch (error) {
-      if (request === detailRequest) notice(errorMessage(error), true);
+      if (request !== detailRequest) return;
+      const message = error instanceof LabError && error.code === "evaluation_not_found"
+        ? "El reporte ya no está disponible. Actualizá la lista de campañas."
+        : "No se pudo abrir el detalle de esta campaña. Volvé a seleccionarla para reintentar.";
+      const failure = element("p", "notice error", message);
+      failure.setAttribute("role", "alert");
+      failure.tabIndex = -1;
+      detail.replaceChildren(failure);
+      detail.hidden = false;
+      selectedRun = runId;
+      renderCampaigns();
+      if (!detail.closest("[hidden]")) {
+        failure.focus({preventScroll: true});
+        detail.scrollIntoView({block: "start"});
+      }
     }
   }
 
