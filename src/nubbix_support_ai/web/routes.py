@@ -34,7 +34,7 @@ def build_router(runtime: Runtime, tasks: set[asyncio.Task[Any]]) -> APIRouter:
 
     @router.get("/", include_in_schema=False)
     async def index() -> FileResponse:
-        return FileResponse(STATIC / "index.html")
+        return FileResponse(STATIC / "index.html", headers={"Cache-Control": "no-cache"})
 
     @router.get("/api/lab/catalog")
     async def catalog() -> dict[str, Any]:

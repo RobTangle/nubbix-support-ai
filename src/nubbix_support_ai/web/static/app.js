@@ -57,8 +57,9 @@ async function openHistoryRun(runId, origin = null) {
     if (!target.closest("[hidden]")) target.scrollIntoView({block: "start"});
   } catch (error) {
     if (!inspector.isConnected) return;
-    inspector.replaceChildren(element("p", "muted", errorMessage(error)));
-    if (!target.closest("[hidden]")) notice(errorMessage(error), true);
+    const failure = element("p", "notice error", errorMessage(error));
+    failure.setAttribute("role", "alert");
+    inspector.replaceChildren(failure);
   }
 }
 
