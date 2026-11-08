@@ -69,7 +69,8 @@ def test_settings_reject_invalid_money(tmp_path, monkeypatch, value):
 def test_catalog_compares_effective_context_and_validates_examples():
     catalog = load_catalog(ROOT)
     first, second = catalog.get("v1"), catalog.get("v2")
-    assert catalog.default == "v1"
+    assert catalog.get().version == "v5"
+    assert catalog.baseline == "v1"
     assert first.comparison_hash == second.comparison_hash
     assert first.content_hash != second.content_hash
     assert len(first.examples) == 0

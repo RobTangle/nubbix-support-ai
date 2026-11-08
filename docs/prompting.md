@@ -1,6 +1,6 @@
 # Prompts versionados
 
-`prompts/registry.yaml` define versiones, etiquetas, default y baseline. `default` selecciona el prompt usado cuando no se especifica otro; `baseline` identifica la referencia experimental. No significan que exista una configuración ganadora.
+`prompts/registry.yaml` define las versiones y sus etiquetas. `default` selecciona v5 para las solicitudes sin una versión explícita ni una configuración en `NUBBIX_PROMPT`. `baseline` identifica v1 como referencia experimental. [Historial de prompts](../prompts/CHANGELOG.md)
 
 Cada directorio `prompts/versions/<id>/` contiene:
 

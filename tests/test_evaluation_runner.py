@@ -64,8 +64,9 @@ async def test_runner_preserves_errors_then_continues_with_next_case(tmp_path):
 async def test_campaign_budget_is_shared_and_stops_without_reset(tmp_path):
     provider = ScriptedProvider()
     settings = settings_at(tmp_path)
+    prompt_version = "v1"
     async with Runtime(settings, providers={"openai": provider}) as runtime:
-        probe = await runtime.service().run(Ticket(text="Cargo 0"))
+        probe = await runtime.service().run(Ticket(text="Cargo 0"), prompt_version=prompt_version)
         reservations = []
         for call in provider.calls:
             payload = {"system": call.system, "messages": [
@@ -75,8 +76,8 @@ async def test_campaign_budget_is_shared_and_stops_without_reset(tmp_path):
                                  json.dumps(payload), call.max_output_tokens))
         budget = Budget(max(reservations) + Decimal(probe.metrics["known_cost_usd"]) * Decimal("1.2"))
         selected = cases() + [EvalCase(id="case-2", text="Cargo 2", category="billing")]
-        report = await run_evaluation(runtime, selected, provider="openai", prompt_versions=["v1"],
-                                      campaign_budget=budget)
+        report = await run_evaluation(runtime, selected, provider="openai",
+                                      prompt_versions=[prompt_version], campaign_budget=budget)
     assert report.summary["status"] == "budget_exhausted"
     assert report.summary["completed"] < report.summary["planned"]
     assert budget.committed <= budget.limit
@@ -228,8 +229,9 @@ async def test_ticket_budget_exhaustion_preserves_campaign_and_allows_next_case(
     provider = ScriptedProvider()
     settings = settings_at(tmp_path)
     campaign = Budget(Decimal("2"))
+    prompt_version = "v1"
     async with Runtime(settings, providers={"openai": provider}) as runtime:
-        probe = await runtime.service().run(Ticket(text="Cargo 0"))
+        probe = await runtime.service().run(Ticket(text="Cargo 0"), prompt_version=prompt_version)
         reservations = []
         for call in provider.calls:
             payload = {"system": call.system, "messages": [
@@ -240,8 +242,8 @@ async def test_ticket_budget_exhaustion_preserves_campaign_and_allows_next_case(
         settings.ticket_usd = max(reservations) + Decimal(probe.metrics["known_cost_usd"])
         provider.calls.clear()
         provider.replies = [ProviderError("rate_limited", retryable=True)]
-        report = await run_evaluation(runtime, cases(), provider="openai", prompt_versions=["v1"],
-                                      campaign_budget=campaign)
+        report = await run_evaluation(runtime, cases(), provider="openai",
+                                      prompt_versions=[prompt_version], campaign_budget=campaign)
     rows = read_report(settings.reports_dir, report.run_id)["cases"]
     assert report.summary["status"] == "completed"
     assert report.summary["completed"] == 2

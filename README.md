@@ -66,7 +66,9 @@ Detené el servidor con `Ctrl+C`. La aplicación da hasta cinco segundos a las s
 
 Creá `.env` a partir de `.env.example` si todavía no existe y completá `OPENAI_API_KEY` o `GEMINI_API_KEY` según el proveedor que vayas a usar. Si sólo vas a usar uno, dejá vacía la variable del otro. [Crear `.env` en tu shell](docs/setup.md#configurar-las-claves-locales)
 
-Si el servidor ya está abierto, detenelo con `Ctrl+C` y repetí el comando `web` para cargar las claves. Analizar un ticket o ejecutar una evaluación puede generar cargos del proveedor.
+Si el servidor ya está abierto, detenelo con `Ctrl+C` y repetí el comando `web` para cargar las claves.
+
+Analizar un ticket o ejecutar una evaluación puede generar cargos del proveedor. La versión predeterminada del prompt es `v5`. [Historial de prompts](prompts/CHANGELOG.md)
 
 ## Primera prueba
 
