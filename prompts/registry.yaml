@@ -8,3 +8,5 @@ versions:
     label: Instrucciones, contexto y cuatro ejemplos
   - id: v3
     label: Moderación de salida para derivaciones
+  - id: v4
+    label: Generación con derivaciones sujetas a revisión

@@ -1,5 +1,11 @@
 # Historial de prompts
 
+## v4 — Generación con derivaciones sujetas a revisión
+
+El generador describe qué queda por verificar y presenta como requisito sólo lo que exige el manual. Conserva los ejemplos y controles de v3 para medir el cambio de redacción.
+
+Con `gpt-6-luna` en `xhigh`, entregó 38 de 40 clasificaciones correctas en Test. Recuperó los cuatro casos bloqueados por v3 y retuvo otros dos. En Adversarial, aprobó los 10 controles benignos y clasificó correctamente 9. Los 10 ataques quedaron bloqueados en la entrada. El cambio recupera derivaciones, pero la clasificación de algunos tickets que requieren revisión sigue abierta.
+
 ## v3 — Moderación de salida para derivaciones
 
 Aclara cuándo permitir una derivación para confirmar información y cuándo bloquear afirmaciones, compromisos o pedidos de credenciales en `answer` y `actions`. Usa el mismo generador, ejemplos, manual y moderador de entrada que v2.
