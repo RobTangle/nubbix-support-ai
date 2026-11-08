@@ -2,13 +2,7 @@
 
 El laboratorio permite probar tickets, comparar versiones de prompt y revisar el flujo que produjo cada resultado. FastAPI sirve la API y los archivos HTML, CSS y JavaScript locales; no hace falta Node ni un CDN.
 
-Desde la raíz del checkout, con las dependencias y una clave de proveedor configuradas. Con uv disponible, el comando es igual en PowerShell, CMD, Git Bash y Bash/Zsh:
-
-```console
-uv run --locked nubbix web
-```
-
-Si uv no está disponible pero `.venv` ya está instalado, usá la fila de tu shell:
+Desde la raíz del checkout, prepará `.venv` con el [inicio rápido](../README.md#inicio-rápido) y usá el comando de tu shell. Podés abrir el laboratorio antes de configurar un proveedor.
 
 | Shell y sistema | Iniciar el laboratorio |
 | --- | --- |

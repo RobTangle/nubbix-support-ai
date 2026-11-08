@@ -2,15 +2,15 @@
 
 El runner ejecuta el mismo `SupportService.run` utilizado por CLI y HTTP. Procesa los casos secuencialmente y conserva una carpeta nueva por campaña. Abrir un reporte existente no ejecuta llamadas y una campaña interrumpida no se reanuda automáticamente.
 
-Desde la raíz del repositorio, con uv instalado, los comandos son iguales en PowerShell, CMD, Git Bash y Bash/Zsh:
+Desde la raíz del repositorio, activá `.venv` para usar `python` en estos ejemplos o reemplazalo por la ruta del intérprete del entorno. [Rutas y activación por shell](setup.md#elegir-el-shell)
 
 ```console
-uv run --locked nubbix eval run --provider openai --prompt-version v1 --split dev
-uv run --locked nubbix eval compare --provider google --split test
-uv run --locked nubbix eval adversarial --provider openai --prompt-version v1 --ablation
+python -m nubbix_support_ai eval run --provider openai --prompt-version v1 --split dev
+python -m nubbix_support_ai eval compare --provider google --split test
+python -m nubbix_support_ai eval adversarial --provider openai --prompt-version v1 --ablation
 ```
 
-Sin uv, usá el Python del entorno según la [guía de terminales](setup.md), seguido de `-m nubbix_support_ai eval ...`. Por ejemplo, en Git Bash: `./.venv/Scripts/python.exe -m nubbix_support_ai eval compare --provider openai --split dev`. Estos comandos llaman a las APIs; para inspeccionar sus opciones sin consumirlas, agregá `--help`.
+Estos comandos llaman a las APIs. Para inspeccionar sus opciones, ejecutá el comando correspondiente con `--help`.
 
 Cada campaña selecciona un proveedor, modelo y parámetros. Las comparaciones entre versiones utilizan esos mismos valores y alternan el orden de las versiones por caso: v1/v2 en el primero, v2/v1 en el segundo. El runner admite únicamente comparaciones cuyos bundles tienen el mismo `comparison_hash`, que representa instrucciones, manual, seguridad y reparación. Si esos componentes cambian, rechaza la comparación automática con `incomparable_prompt_bundles`; se pueden ejecutar campañas separadas e interpretar el contraste como una comparación de pipelines.
 
