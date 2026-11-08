@@ -10,3 +10,5 @@ versions:
     label: Moderación de salida para derivaciones
   - id: v4
     label: Generación con derivaciones sujetas a revisión
+  - id: v5
+    label: Clasificación por intención al derivar

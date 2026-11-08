@@ -1,5 +1,13 @@
 # Historial de prompts
 
+## v5 — Clasificación por intención al derivar
+
+Aclara que la categoría sigue la intención principal del ticket cuando la propuesta consiste en pedir datos, derivar o confirmar una capacidad. Conserva las reglas de generación de v4 y los controles de seguridad de v3.
+
+Con `gpt-6-luna` en `xhigh`, entregó 40 de 40 clasificaciones correctas en Test sin retener propuestas. En la misma tanda, v2 entregó 35 de 40. Su corrida anterior había dado 38 de 40. En Adversarial, v5 permitió los 10 controles benignos y clasificó correctamente 9. La consulta sobre un CSV quedó como `other` en vez de `technical`. El moderador de entrada bloqueó los 10 ataques.
+
+Es la candidata con mejor resultado observado en Test. La evaluación usa un corpus conocido de regresión y la revisión semántica de las propuestas sigue pendiente.
+
 ## v4 — Generación con derivaciones sujetas a revisión
 
 El generador describe qué queda por verificar y presenta como requisito sólo lo que exige el manual. Conserva los ejemplos y controles de v3 para medir el cambio de redacción.
