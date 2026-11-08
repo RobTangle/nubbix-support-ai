@@ -4,73 +4,69 @@ Asistente de soporte con IA para clasificar consultas de facturación, problemas
 
 [Inicio rápido](#inicio-rápido) · [Cómo funciona](#cómo-funciona) · [Documentación](#documentación)
 
-## Qué permite hacer
-
-- **CLI y API:** acceso al mismo flujo de clasificación y generación.
-- **Dos proveedores:** integración independiente con OpenAI y Google.
-- **Laboratorio local:** pruebas de tickets y comparación de versiones de prompts.
-- **Trazabilidad:** timeline e inspector de solicitudes, respuestas, reintentos, consumo y latencia.
-- **Prompts versionados:** instrucciones, contexto y ejemplos en YAML, con changelog.
-- **Evaluaciones:** métricas de clasificación, revisión de respuestas y casos adversariales con controles benignos.
-
 ## Inicio rápido
 
-### 1. Comprobar los requisitos
+Necesitás Python 3.12 o superior con `venv` y `pip`. uv es opcional. Si Debian o Ubuntu muestra `ensurepip is not available`, la guía indica qué paquete instalar. [Problemas frecuentes](docs/setup.md#problemas-frecuentes)
 
-- Python 3.12 o superior.
-- [uv](https://docs.astral.sh/uv/getting-started/installation/) para instalar las dependencias y ejecutar los comandos.
-- Una clave de OpenAI o Google Gemini para analizar tickets. Con una sola basta para usar ese proveedor.
+Abrí la terminal en la raíz del clon, donde está `pyproject.toml`. En Windows Terminal o VS Code, elegí el bloque según el shell de la pestaña. [Perfiles de terminal y WSL](docs/setup.md#elegir-el-shell)
 
-Abrí la terminal en la raíz del checkout, donde está `pyproject.toml`. En Windows Terminal o VS Code, elegí las instrucciones según el shell de la pestaña: PowerShell, CMD, Git Bash o Bash/Zsh. La [guía de instalación y terminales](docs/setup.md) incluye instalación de uv, una alternativa inicial con pip y particularidades de WSL.
+### 1. Instalar y abrir el laboratorio
 
-Si `.venv` ya está preparado y uv no está disponible, podés ir directamente a [Entorno existente sin uv](#entorno-existente-sin-uv).
+En un clon nuevo, comprobá que la primera línea del bloque muestre Python 3.12 o superior y ejecutá el resto. Los comandos crean `.venv`, usan su `pip` para instalar las dependencias fijadas en `requirements.txt` e instalan el paquete en modo editable para que encuentre los prompts y datasets del clon. Si ya instalaste el proyecto, podés saltar a los comandos de arranque. [Usar un entorno existente](docs/setup.md#usar-un-entorno-existente)
 
-### 2. Instalar las dependencias
+#### PowerShell en Windows
 
-Estos comandos sirven en PowerShell, CMD, Git Bash y Bash/Zsh:
-
-```console
-uv --version
-uv sync --locked
+```powershell
+python --version
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install --no-deps -e .
+.\.venv\Scripts\python.exe -m nubbix_support_ai prompts check
+.\.venv\Scripts\python.exe -m nubbix_support_ai web
 ```
 
-### 3. Configurar las claves
+#### CMD en Windows
 
-Creá `.env` sólo si todavía no existe, usando la fila correspondiente a tu shell:
-
-| Shell | Crear la configuración local sin sobrescribirla |
-| --- | --- |
-| PowerShell | `if (-not (Test-Path .env)) { Copy-Item .env.example .env }` |
-| CMD | `if not exist .env copy .env.example .env` |
-| Git Bash / Bash / Zsh | `if [ ! -e .env ]; then cp .env.example .env; fi` |
-
-Abrí `.env` en tu editor y completá únicamente las claves de los proveedores que quieras utilizar: `OPENAI_API_KEY` y/o `GEMINI_API_KEY`. La aplicación no necesita ambas para funcionar con uno solo.
-
-### 4. Iniciar el laboratorio web
-
-Validá los prompts e iniciá el servidor. Estos comandos no llaman a las APIs de modelos:
-
-```console
-uv run --locked nubbix prompts check
-uv run --locked nubbix web
+```bat
+python --version
+python -m venv .venv
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+.venv\Scripts\python.exe -m pip install --no-deps -e .
+.venv\Scripts\python.exe -m nubbix_support_ai prompts check
+.venv\Scripts\python.exe -m nubbix_support_ai web
 ```
 
-Dejá la terminal abierta y visitá [http://127.0.0.1:8000](http://127.0.0.1:8000). Detené el servidor con `Ctrl+C`. Abrir el laboratorio, el historial o los reportes no consume API; analizar un ticket o ejecutar una evaluación sí puede generar cargos.
+#### Git Bash en Windows
 
-Al detener el servidor, las solicitudes activas tienen hasta cinco segundos para terminar. Después se cancelan las pendientes y se espera su limpieza antes de cerrar los clientes. La [guía del laboratorio](docs/lab-guide.md#cancelar-fallar-y-volver-a-intentar) detalla cómo se registra una interrupción.
+```bash
+python --version
+python -m venv .venv
+./.venv/Scripts/python.exe -m pip install -r requirements.txt
+./.venv/Scripts/python.exe -m pip install --no-deps -e .
+./.venv/Scripts/python.exe -m nubbix_support_ai prompts check
+./.venv/Scripts/python.exe -m nubbix_support_ai web
+```
 
-### Entorno existente sin uv
+#### Bash/Zsh en Linux, macOS o WSL
 
-Si `.venv` ya tiene instaladas las dependencias, podés iniciar el laboratorio directamente. No hace falta activar el entorno; para analizar tickets, configurá `.env` como se indica en el paso 3:
+```bash
+python3 --version
+python3 -m venv .venv
+./.venv/bin/python -m pip install -r requirements.txt
+./.venv/bin/python -m pip install --no-deps -e .
+./.venv/bin/python -m nubbix_support_ai prompts check
+./.venv/bin/python -m nubbix_support_ai web
+```
 
-| Shell y sistema | Iniciar el laboratorio |
-| --- | --- |
-| PowerShell en Windows | `.\.venv\Scripts\python.exe -m nubbix_support_ai web` |
-| CMD en Windows | `.venv\Scripts\python.exe -m nubbix_support_ai web` |
-| Git Bash en Windows | `./.venv/Scripts/python.exe -m nubbix_support_ai web` |
-| Bash/Zsh en Linux, macOS o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
+Con el servidor en ejecución, podés abrir el laboratorio y consultar el historial y los reportes sin claves. [Abrir el laboratorio en el puerto 8000](http://127.0.0.1:8000)
 
-Después abrí la misma dirección del laboratorio. En Git Bash usá `/` en las rutas: `\` funciona como escape. Para WSL, creá un entorno Linux en un checkout separado del utilizado en Windows. La [guía completa](docs/setup.md) detalla la activación opcional del entorno y los errores de rutas o PATH.
+Detené el servidor con `Ctrl+C`. La aplicación da hasta cinco segundos a las solicitudes activas antes de cancelar las pendientes y esperar su limpieza. [Cancelación y cierre](docs/lab-guide.md#cancelar-fallar-y-volver-a-intentar)
+
+### 2. Configurar un proveedor para analizar tickets
+
+Creá `.env` a partir de `.env.example` si todavía no existe y completá `OPENAI_API_KEY` o `GEMINI_API_KEY` según el proveedor que vayas a usar. Si sólo vas a usar uno, dejá vacía la variable del otro. [Crear `.env` en tu shell](docs/setup.md#configurar-las-claves-locales)
+
+Si el servidor ya está abierto, detenelo con `Ctrl+C` y repetí el comando `web` para cargar las claves. Analizar un ticket o ejecutar una evaluación puede generar cargos del proveedor.
 
 ## Primera prueba
 
@@ -83,6 +79,15 @@ Con el laboratorio abierto y una clave configurada:
 5. Abrí el inspector para ver los prompts, las respuestas, el consumo y las validaciones; después podés recuperar la corrida desde **Historial**.
 
 Si el flujo queda bloqueado o falla, revisá su estado y los eventos en lugar de interpretarlo como una respuesta satisfactoria. La [guía del laboratorio](docs/lab-guide.md) explica cada señal y cómo cancelar una ejecución.
+
+## Qué permite hacer
+
+- Usar el mismo flujo de clasificación y generación desde la CLI y la API.
+- Ejecutar el flujo con OpenAI o Google, cada uno con su propia clave.
+- Probar tickets y comparar versiones de prompts en el laboratorio local.
+- Inspeccionar solicitudes, respuestas, reintentos, consumo y latencia.
+- Consultar instrucciones, contexto y ejemplos versionados en YAML con su changelog.
+- Medir la clasificación, revisar respuestas y evaluar ataques con controles benignos.
 
 ## Cómo funciona
 
@@ -98,25 +103,23 @@ La aplicación utiliza Python, FastAPI, Pydantic y los SDK oficiales de ambos pr
 
 ### CLI
 
-En otra pestaña de terminal, ejecutá una variante según la clave que hayas configurado. Con uv, la sintaxis es igual en todos los shells mencionados.
+En otra pestaña, activá `.venv` para usar `python` como en los ejemplos o reemplazalo por la ruta al ejecutable del entorno. Elegí el comando según la clave que hayas configurado. [Activación](docs/setup.md#activar-el-entorno) · [Rutas por shell](docs/setup.md#elegir-el-shell)
 
-OpenAI:
+**OpenAI**
 
 ```console
-uv run --locked nubbix respond --provider openai --text "Me cobraron dos veces este mes"
+python -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
 ```
 
-Google Gemini:
+**Google Gemini**
 
 ```console
-uv run --locked nubbix respond --provider google --text "Me cobraron dos veces este mes"
+python -m nubbix_support_ai respond --provider google --text "Me cobraron dos veces este mes"
 ```
 
 `respond` escribe sólo los cuatro campos públicos en stdout: `answer`, `confidence`, `category` y `actions`. Los errores operativos usan stderr y un código de salida no exitoso. Estas consultas consumen API.
 
 En `respond` y las campañas de evaluación, `Ctrl+C` cancela con código de salida `130`; una señal `SIGTERM` capturable usa `143`. Ambos esperan la limpieza y conservan los registros parciales. Consultá [cierre y señales según el sistema](docs/setup.md#detener-procesos-y-consultar-el-código-de-salida).
-
-Sin uv, usá el ejecutable de la tabla de terminales seguido de `-m nubbix_support_ai respond ...`. Por ejemplo, en Git Bash: `./.venv/Scripts/python.exe -m nubbix_support_ai respond --provider google --text "Me cobraron dos veces este mes"`.
 
 ### API HTTP
 
@@ -148,15 +151,17 @@ Una consulta permitida normalmente realiza tres llamadas: revisión de entrada, 
 
 ## Evaluaciones y resultados
 
+Elegí un comando para un proveedor con clave configurada. Usá `python` con `.venv` activo o indicá la ruta del intérprete del entorno. [Rutas por shell](docs/setup.md#elegir-el-shell)
+
 ```console
-uv run --locked nubbix eval compare --provider openai --split dev --prompt-versions v1 v2
-uv run --locked nubbix eval run --provider google --prompt-version v1 --split test
-uv run --locked nubbix eval adversarial --provider openai --prompt-version v1 --ablation
+python -m nubbix_support_ai eval compare --provider openai --split dev --prompt-versions v1 v2
+python -m nubbix_support_ai eval run --provider google --prompt-version v1 --split test
+python -m nubbix_support_ai eval adversarial --provider openai --prompt-version v1 --ablation
 ```
 
 Estos comandos consumen API. `--max-cost-usd` permite fijar el presupuesto de una campaña. `datasets/` contiene 80 tickets y 20 casos de seguridad; `evaluation/`, dentro del paquete, contiene el runner y las métricas. Los resultados se guardan en `reports/local/` y pueden revisarse desde el laboratorio.
 
-Los errores y abstenciones permanecen en los denominadores. Utilidad, corrección y respeto de políticas tienen una rúbrica de revisión; valores pendientes no cuentan como aprobaciones. El corpus es sintético y conocido de regresión, no una muestra representativa de clientes ni un holdout nuevo.
+Los errores y abstenciones de tickets y controles benignos permanecen en el denominador de clasificación. Los ataques se miden por separado. La rúbrica permite revisar la utilidad, corrección y respeto de políticas. El corpus sintético sirve como conjunto conocido de regresión.
 
 Las [mediciones iniciales](docs/results.md) incluyen campañas reales, configuración y cobertura: OpenAI obtuvo 38/40 clasificaciones correctas en `test` con v2; Gemini se verificó con una muestra reducida tras límites de cuota. La revisión semántica permanece pendiente.
 
@@ -176,6 +181,8 @@ Para profundizar en cada área:
 
 ## Verificar el software
 
+Estos comandos usan uv con las dependencias de desarrollo. [Configurar uv](docs/setup.md#usar-uv-para-desarrollo)
+
 ```console
 uv run --locked pytest
 uv run --locked ruff check src tests
@@ -186,7 +193,7 @@ La suite no requiere claves y restringe conexiones a loopback para soportar el e
 
 También podés iniciar la CI desde GitHub: **Actions → Python quality → Run workflow**.
 
-Si Node 22 o superior está disponible, pytest ejecuta también las regresiones JavaScript del progreso del ticket. Es opcional para estas pruebas; el laboratorio se ejecuta con Python y no requiere una compilación frontend.
+Si Node 22 o superior está disponible, pytest ejecuta también las regresiones JavaScript del progreso del ticket y las ayudas de evaluación. Es opcional para estas pruebas; el laboratorio se ejecuta con Python y no requiere una compilación frontend.
 
 ## Datos y limitaciones
 

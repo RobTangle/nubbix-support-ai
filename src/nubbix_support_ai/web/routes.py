@@ -11,6 +11,7 @@ from starlette.requests import ClientDisconnect
 
 from nubbix_support_ai.bootstrap import Runtime
 from nubbix_support_ai.observability.events import FlowEvent
+from nubbix_support_ai.observability.stages import summarize_flow
 from nubbix_support_ai.support.contracts import ProviderName, SupportResponse, Ticket
 from nubbix_support_ai.web.lifecycle import cancel_and_drain
 from nubbix_support_ai.web.streaming import LabStream, stream_operation
@@ -100,6 +101,7 @@ def build_router(runtime: Runtime, tasks: set[asyncio.Task[Any]]) -> APIRouter:
 
     @router.get("/api/lab/runs/{run_id}")
     async def inspection(run_id: UUID) -> dict[str, Any]:
-        return runtime.store.get_run(str(run_id))
+        run = runtime.store.get_run(str(run_id))
+        return run | {"flow": summarize_flow(run)}
 
     return router

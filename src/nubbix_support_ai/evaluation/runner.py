@@ -15,6 +15,7 @@ from nubbix_support_ai.evaluation.data import EvalCase, dataset_hash
 from nubbix_support_ai.evaluation.reports import EvaluationReport, ReportWriter
 from nubbix_support_ai.observability.costs import Budget, BudgetExceeded
 from nubbix_support_ai.observability.events import EventSink, FlowEvent, Scalar
+from nubbix_support_ai.observability.stages import summarize_flow
 from nubbix_support_ai.support.contracts import AppError, ProviderName, SupportResponse, Ticket
 from nubbix_support_ai.support.service import SupportService
 
@@ -71,6 +72,7 @@ def _case_row(case: EvalCase, version: str, arm: str, inspection: dict[str, Any]
         "request_id": inspection.get("request_id"),
         "status": inspection.get("status", "error"), "error_code": error_code,
         "response": response, "metrics": inspection.get("metrics", {}),
+        "flow": summarize_flow(inspection, arm=arm),
         "signals": {
             "response_schema_valid": schema_valid, "generation_schema_valid": generation_valid,
             "generation_attempts": len(generation),

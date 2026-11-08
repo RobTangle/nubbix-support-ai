@@ -6,3 +6,9 @@ versions:
     label: Instrucciones y contexto
   - id: v2
     label: Instrucciones, contexto y cuatro ejemplos
+  - id: v3
+    label: Moderación de salida para derivaciones
+  - id: v4
+    label: Generación con derivaciones sujetas a revisión
+  - id: v5
+    label: Clasificación por intención al derivar

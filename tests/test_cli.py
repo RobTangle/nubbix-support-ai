@@ -12,7 +12,7 @@ from tests.helpers import PROPOSAL, ScriptedProvider, settings_at
 def test_prompt_validation_and_help_need_no_credentials(capsys):
     assert cli.main(["prompts", "check"]) == 0
     output = json.loads(capsys.readouterr().out)
-    assert {item["id"] for item in output["versions"]} >= {"v1", "v2"}
+    assert {item["id"] for item in output["versions"]} >= {"v1", "v2", "v3"}
     with pytest.raises(SystemExit) as result:
         cli.main(["--help"])
     assert result.value.code == 0
@@ -63,4 +63,7 @@ def test_incomplete_evaluation_returns_nonzero_and_keeps_a_readable_partial_repo
     assert report["summary"]["stopping_error"] == "quota_exhausted"
     assert len(provider.calls) == 1
     assert cli.main(["eval", "summarize", report["directory"]]) == 0
-    assert json.loads(capsys.readouterr().out)["summary"]["status"] == "provider_error"
+    saved = json.loads(capsys.readouterr().out)
+    assert saved["summary"]["status"] == "provider_error"
+    if action == "compare":
+        assert saved["manifest"]["prompt_versions"] == ["v1", "v2"]

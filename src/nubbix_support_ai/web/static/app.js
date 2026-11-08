@@ -7,7 +7,7 @@ import {configureProviderSelectors, copyJSON, dateTime, element, errorMessage, m
 const viewText = {test: ["DEL TICKET A LA RESPUESTA", "Soporte que podés inspeccionar.", "Probá un caso y seguí cada decisión del flujo, de principio a fin."], evaluations: ["EVIDENCIA ANTES DE ELEGIR", "Medí el flujo. Revisá la calidad.", "Compará versiones con el mismo proveedor, conservá los casos y sumá tu revisión."], history: ["MEMORIA DEL LABORATORIO", "Cada ejecución tiene una historia.", "Filtrá tus corridas locales y volvé a los prompts, respuestas y decisiones originales."]};
 let evaluationView = null;
 
-function switchView(view) {
+function switchView(view, {refresh = true} = {}) {
   if (!viewText[view]) view = "test";
   for (const section of document.querySelectorAll(".view")) section.hidden = section.id !== `view-${view}`;
   for (const button of document.querySelectorAll("[data-view]")) {
@@ -18,22 +18,47 @@ function switchView(view) {
   }
   for (const [index, id] of ["view-eyebrow", "view-title", "view-description"].entries()) document.getElementById(id).textContent = viewText[view][index];
   history.replaceState(null, "", `#${view}`);
-  if (view === "history") loadHistory();
-  if (view === "evaluations") evaluationView?.loadReports();
+  if (refresh && view === "history") loadHistory();
+  if (refresh && view === "evaluations") evaluationView?.loadReports();
 }
 
-async function openHistoryRun(runId) {
+async function openHistoryRun(runId, origin = null) {
+  const originTop = origin?.getBoundingClientRect().top;
   switchView("history");
   const target = document.getElementById("history-detail");
+  const inspector = element("div");
+  inspector.append(element("p", "muted", "Cargando inspector…"));
+  target.replaceChildren(inspector);
   target.hidden = false;
-  target.replaceChildren(element("p", "muted", "Cargando inspector…"));
-  try {
-    const run = await getJSON(`/api/lab/runs/${encodeURIComponent(runId)}`);
-    renderInspection(run, target, true);
+  if (origin) {
+    const bar = element("div", "inspector-return");
+    const back = element("button", "button secondary compact", "← Volver a la evaluación");
+    back.type = "button";
+    back.addEventListener("click", () => {
+      switchView("evaluations", {refresh: false});
+      if (origin.isConnected && !origin.closest("[hidden]")) {
+        window.scrollTo(0, window.scrollY + origin.getBoundingClientRect().top - originTop);
+        origin.focus({preventScroll: true});
+      } else {
+        const heading = document.getElementById("report-list-title");
+        heading.focus({preventScroll: true});
+        heading.scrollIntoView({block: "start"});
+      }
+    });
+    bar.append(back);
+    target.prepend(bar);
     target.scrollIntoView({block: "start"});
+    back.focus({preventScroll: true});
+  }
+  try {
+    const run = await readRun(runId);
+    if (!inspector.isConnected) return;
+    renderInspection(run, inspector, true);
+    if (!target.closest("[hidden]")) target.scrollIntoView({block: "start"});
   } catch (error) {
-    target.replaceChildren(element("p", "muted", errorMessage(error)));
-    notice(errorMessage(error), true);
+    if (!inspector.isConnected) return;
+    inspector.replaceChildren(element("p", "muted", errorMessage(error)));
+    if (!target.closest("[hidden]")) notice(errorMessage(error), true);
   }
 }
 

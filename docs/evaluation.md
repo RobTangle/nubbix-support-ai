@@ -2,15 +2,15 @@
 
 El runner ejecuta el mismo `SupportService.run` utilizado por CLI y HTTP. Procesa los casos secuencialmente y conserva una carpeta nueva por campaña. Abrir un reporte existente no ejecuta llamadas y una campaña interrumpida no se reanuda automáticamente.
 
-Desde la raíz del repositorio, con uv instalado, los comandos son iguales en PowerShell, CMD, Git Bash y Bash/Zsh:
+Desde la raíz del repositorio, activá `.venv` para usar `python` en estos ejemplos o reemplazalo por la ruta del intérprete del entorno. [Rutas y activación por shell](setup.md#elegir-el-shell)
 
 ```console
-uv run --locked nubbix eval run --provider openai --prompt-version v1 --split dev
-uv run --locked nubbix eval compare --provider google --split test
-uv run --locked nubbix eval adversarial --provider openai --prompt-version v1 --ablation
+python -m nubbix_support_ai eval run --provider openai --prompt-version v1 --split dev
+python -m nubbix_support_ai eval compare --provider google --split test
+python -m nubbix_support_ai eval adversarial --provider openai --prompt-version v1 --ablation
 ```
 
-Sin uv, usá el Python del entorno según la [guía de terminales](setup.md), seguido de `-m nubbix_support_ai eval ...`. Por ejemplo, en Git Bash: `./.venv/Scripts/python.exe -m nubbix_support_ai eval compare --provider openai --split dev`. Estos comandos llaman a las APIs; para inspeccionar sus opciones sin consumirlas, agregá `--help`.
+Estos comandos llaman a las APIs. Para inspeccionar sus opciones, ejecutá el comando correspondiente con `--help`.
 
 Cada campaña selecciona un proveedor, modelo y parámetros. Las comparaciones entre versiones utilizan esos mismos valores y alternan el orden de las versiones por caso: v1/v2 en el primero, v2/v1 en el segundo. El runner admite únicamente comparaciones cuyos bundles tienen el mismo `comparison_hash`, que representa instrucciones, manual, seguridad y reparación. Si esos componentes cambian, rechaza la comparación automática con `incomparable_prompt_bundles`; se pueden ejecutar campañas separadas e interpretar el contraste como una comparación de pipelines.
 
@@ -32,7 +32,11 @@ La carpeta configurada mediante `reports_dir`, por defecto `reports/local`, cont
 
 ## Métricas
 
-La exactitud usa todos los casos intentados con etiqueta. Los errores, bloqueos y abstenciones permanecen en el denominador. Una respuesta estática de derivación con categoría `other` no recibe crédito de clasificación. La matriz de confusión usa cuatro categorías esperadas y una columna adicional `unclassified` para esos resultados. La precisión, recall y F1 se calculan por categoría; macro-F1 promedia las cuatro F1. Una categoría sin predicciones recibe precisión y F1 cero; si no hay casos etiquetados, exactitud y macro-F1 permanecen `null`.
+La exactitud usa los tickets y controles benignos intentados con etiqueta. Sus errores, bloqueos y abstenciones permanecen en el denominador como `unclassified`, incluso si la respuesta de respaldo lleva la categoría `other`. La precisión, el recall y el F1 se calculan por categoría. Macro-F1 promedia las cuatro categorías. Una categoría sin predicciones recibe precisión y F1 cero. Si no hay tickets o controles etiquetados, exactitud y macro-F1 permanecen `null`.
+
+Los ataques conservan una intención de referencia en el corpus. El reporte separa su resultado de seguridad de la clasificación y registra el total de ataques, los bloqueados y los que recibieron una propuesta del modelo. Al abrir una campaña anterior, la app calcula estas métricas a partir de los casos guardados.
+
+Una categoría sin casos también aporta F1 cero al promedio fijo. Si una selección limitada sólo incluye dos categorías, una clasificación perfecta puede producir exactitud de 100% y macro-F1 de 50%. Antes de interpretar diferencias, comprobá `support` por categoría y la cobertura del corpus. El laboratorio explica esta situación en el reporte y ofrece un glosario desplegable y una guía práctica de revisión.
 
 La validez de la respuesta pública y la validez del JSON generado se informan por separado. Una respuesta estática bloqueada puede respetar el esquema sin que haya generación. Un fallo de transporte sin respuesta no prueba que el modelo haya producido JSON inválido. Los intentos de generación que fallaron validación se cuentan incluso cuando una reparación posterior fue válida.
 

@@ -14,10 +14,26 @@ from nubbix_support_ai.evaluation.reports import CaseReview, list_reports, read_
 from nubbix_support_ai.evaluation.runner import run_evaluation
 from nubbix_support_ai.observability.costs import Budget
 from nubbix_support_ai.observability.events import FlowEvent
+from nubbix_support_ai.observability.stages import summarize_flow
+from nubbix_support_ai.observability.storage import RunStore
 from nubbix_support_ai.support.contracts import AppError, ProviderName
 from nubbix_support_ai.web.streaming import LabStream, stream_operation
 
 _campaign_lock = Lock()
+
+
+def _include_legacy_blocking_flows(report: dict[str, Any], store: RunStore) -> dict[str, Any]:
+    for row in report["cases"]:
+        request_id = row.get("request_id")
+        if row.get("status") != "blocked" or row.get("flow") or not isinstance(request_id, str):
+            continue
+        try:
+            run = store.get_run(request_id)
+        except AppError:
+            continue
+        if run.get("status") == "blocked":
+            row["flow"] = summarize_flow(run, arm=row.get("arm"))
+    return report
 
 
 class EvaluationRequest(BaseModel):
@@ -88,10 +104,12 @@ def build_evaluation_router(runtime: Runtime, tasks: set[asyncio.Task[Any]]) -> 
 
     @router.get("/api/lab/evaluations/{run_id}")
     async def evaluation_detail(run_id: UUID) -> dict[str, Any]:
-        return read_report(runtime.settings.reports_dir, str(run_id))
+        report = read_report(runtime.settings.reports_dir, str(run_id))
+        return _include_legacy_blocking_flows(report, runtime.store)
 
     @router.put("/api/lab/evaluations/{run_id}/reviews")
     async def review(run_id: UUID, payload: CaseReview) -> dict[str, Any]:
-        return save_review(runtime.settings.reports_dir, str(run_id), payload)
+        report = save_review(runtime.settings.reports_dir, str(run_id), payload)
+        return _include_legacy_blocking_flows(report, runtime.store)
 
     return router

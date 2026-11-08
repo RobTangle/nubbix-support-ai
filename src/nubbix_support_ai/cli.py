@@ -77,7 +77,8 @@ def _parser() -> argparse.ArgumentParser:
         command.add_argument("--split", choices=["dev", "test"], default="dev")
         command.add_argument("--max-cost-usd", type=Decimal)
         if name == "compare":
-            command.add_argument("--prompt-versions", nargs="+")
+            command.add_argument("--prompt-versions", nargs="+",
+                                 help="Defaults to versions compatible with the baseline")
         if name == "adversarial":
             command.add_argument("--ablation", action="store_true")
     summarize = actions.add_parser("summarize")
@@ -104,10 +105,14 @@ async def _evaluate(settings: Settings, args: argparse.Namespace) -> dict[str, A
             "adversarial.jsonl" if adversarial else "tickets.jsonl"
         )
         cases = load_cases(path, None if adversarial else args.split)
+        catalog = runtime.catalog
         if args.action == "compare":
-            versions = args.prompt_versions or [item.id for item in runtime.catalog.versions]
+            baseline_hash = catalog.get(catalog.baseline).comparison_hash
+            versions = args.prompt_versions or [
+                item.id for item in catalog.versions if catalog.get(item.id).comparison_hash == baseline_hash
+            ]
         else:
-            versions = [args.prompt_version or settings.prompt or runtime.catalog.default]
+            versions = [args.prompt_version or settings.prompt or catalog.default]
         budget = Budget(args.max_cost_usd if args.max_cost_usd is not None else settings.campaign_usd)
         result = await run_evaluation(
             runtime, cases, provider=args.provider or settings.provider,

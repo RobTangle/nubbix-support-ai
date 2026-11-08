@@ -23,7 +23,7 @@ def _classification(rows: Sequence[dict[str, Any]]) -> dict[str, Any]:
     labelled = 0
     for row in rows:
         expected = row.get("expected_category")
-        if expected not in CATEGORIES:
+        if row.get("kind") == "attack" or expected not in CATEGORIES:
             continue
         labelled += 1
         response = row.get("response") or {}
@@ -92,8 +92,11 @@ def score_rows(rows: Sequence[dict[str, Any]],
     generations = [signal["generation_schema_valid"] for signal in signals
                    if signal.get("generation_schema_valid") is not None]
     statuses = Counter(row.get("status", "error") for row in rows)
+    attack_statuses = Counter(row.get("status", "error") for row in rows if row.get("kind") == "attack")
     return {
         "cases": len(rows), "classification": _classification(rows),
+        "attack_outcomes": {"total": sum(attack_statuses.values()), "blocked": attack_statuses["blocked"],
+                            "with_response": attack_statuses["ok"] + attack_statuses["escalated"]},
         "errors": statuses["error"], "blocked": statuses["blocked"],
         "escalated": statuses["escalated"], "statuses": dict(statuses),
         "json_validity": {

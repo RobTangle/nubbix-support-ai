@@ -1,141 +1,56 @@
 # Instalación y terminales
 
-Todos los ejemplos parten de la raíz del repositorio, donde están `pyproject.toml` y `.env.example`. Copiá sólo los comandos de los bloques, sin agregar el indicador `$`, `PS>` o `C:\>` de tu terminal.
+Abrí la terminal en la raíz del clon, donde están `pyproject.toml` y `.env.example`. Si acabás de clonar el repositorio, instalá y arrancá la aplicación con Python 3.12 o superior. [Inicio rápido](../README.md#inicio-rápido)
 
-## Elegir los comandos correctos
+## Elegir el shell
 
-[Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/) es una aplicación que aloja shells. La terminal integrada de VS Code también ejecuta el shell que hayas seleccionado. La sintaxis depende de ese perfil:
+Windows Terminal y la terminal integrada de VS Code ejecutan el shell del perfil que elegiste. Abrí el menú desplegable junto a `+` para ver los perfiles. Usá los comandos de la fila que corresponda. [Documentación de Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/)
 
 | Shell | Cómo reconocerlo | Python del entorno virtual |
 | --- | --- | --- |
 | PowerShell en Windows | El prompt suele comenzar con `PS`. | `.\.venv\Scripts\python.exe` |
 | CMD en Windows | Prompt similar a `C:\proyectos\nubbix-support-ai>`. | `.venv\Scripts\python.exe` |
 | Git Bash en Windows | El prompt suele incluir `MINGW64` y terminar en `$`. | `./.venv/Scripts/python.exe` |
-| Bash/Zsh en Linux o macOS | Shell del sistema; suele terminar en `$` o `%`. | `./.venv/bin/python` |
+| Bash/Zsh en Linux o macOS | El prompt suele terminar en `$` o `%`. | `./.venv/bin/python` |
 | Bash/Zsh en WSL | Perfil de una distribución Linux, como Ubuntu. | `./.venv/bin/python` |
 
-Git Bash ejecuta el Python de Windows usando sintaxis Bash. WSL ejecuta herramientas Linux: usá un checkout y un entorno virtual propios dentro de esa distribución. Los entornos virtuales de Windows y Linux tienen ejecutables y dependencias diferentes.
+Git Bash ejecuta el Python de Windows con sintaxis Bash. En Git Bash y Bash/Zsh, usá `/` en las rutas. Una `\` sin comillas escapa el carácter siguiente. Copiá los comandos sin el indicador de tu terminal, como `$`, `PS>` o `C:\>`.
 
-En Bash/Zsh usá `/` en las rutas; una barra `\` sin comillas escapa el carácter siguiente. Los ejemplos usan comandos de una sola línea para evitar también las diferencias entre continuaciones de línea de cada shell.
+WSL ejecuta el Python de Linux. Cloná el repositorio dentro del sistema de archivos de tu distribución y creá ahí un `.venv` con el bloque de Bash/Zsh. Cada sistema usa sus propios ejecutables y dependencias.
 
-## Probar una instalación existente sin uv
+## Usar un entorno existente
 
-Si el repo ya tiene `.venv` con las dependencias instaladas y `.env` configurado, podés usarlo directamente. La activación es opcional al indicar la ruta completa al Python del entorno.
+Si `.venv` ya tiene instalados el paquete y sus dependencias, ejecutá las líneas de `prompts check` y `web` del bloque de tu shell. Ambas apuntan al Python del entorno y podés ejecutarlas con `.venv` activo o inactivo. [Comandos de inicio](../README.md#1-instalar-y-abrir-el-laboratorio)
 
-### PowerShell en Windows
+Un `.venv` creado por uv puede prescindir de `pip` y ejecutar la aplicación si está instalada. Usá los comandos de instalación con `pip` para un entorno nuevo creado con `venv`.
 
-```powershell
-.\.venv\Scripts\python.exe -m nubbix_support_ai prompts check
-.\.venv\Scripts\python.exe -m nubbix_support_ai web
-```
+## Configurar las claves locales
 
-### CMD en Windows
+Podés abrir el laboratorio, revisar el historial y consultar reportes sin configurar una clave. Para analizar un ticket o ejecutar una evaluación, necesitás una clave del proveedor elegido. Ejecutá el bloque de tu shell para crear `.env` si todavía no existe.
 
-```bat
-.venv\Scripts\python.exe -m nubbix_support_ai prompts check
-.venv\Scripts\python.exe -m nubbix_support_ai web
-```
-
-### Git Bash en Windows
-
-```bash
-./.venv/Scripts/python.exe -m nubbix_support_ai prompts check
-./.venv/Scripts/python.exe -m nubbix_support_ai web
-```
-
-### Bash/Zsh en Linux, macOS o WSL
-
-```bash
-./.venv/bin/python -m nubbix_support_ai prompts check
-./.venv/bin/python -m nubbix_support_ai web
-```
-
-`prompts check` valida los recursos sin llamar a un modelo. `web` mantiene el servidor abierto: visitá [http://127.0.0.1:8000](http://127.0.0.1:8000) y detenelo con `Ctrl+C`. Abrir el laboratorio no consume API; analizar tickets y ejecutar evaluaciones sí.
-
-Para probar una consulta desde otra pestaña, conservá el ejecutable correspondiente a tu shell y reemplazá `web` por `respond`. Por ejemplo, en Git Bash:
-
-```bash
-./.venv/Scripts/python.exe -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
-```
-
-## Instalar desde un checkout nuevo con uv
-
-### Instalar uv y comprobar el PATH
-
-En Windows, si tenés WinGet, el comando es el mismo desde PowerShell, CMD o Git Bash:
-
-```console
-winget install --id=astral-sh.uv -e
-```
-
-En Bash/Zsh de Linux, macOS o WSL:
-
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Estos métodos están documentados en la [instalación oficial de uv](https://docs.astral.sh/uv/getting-started/installation/), que también ofrece alternativas si no tenés WinGet o curl. Cerrá y volvé a abrir la terminal para recargar el PATH; si usás la terminal integrada, puede hacer falta reiniciar VS Code. Después comprobá:
-
-```console
-uv --version
-```
-
-Si todavía aparece `command not found` o "no se reconoce", uv no está disponible en el PATH de ese shell. Podés usar la instalación existente como se explica arriba mientras resolvés su instalación.
-
-### Instalar las dependencias
-
-Con uv disponible, estos comandos sirven en todos los shells de la tabla:
-
-```console
-uv sync --locked
-```
-
-El archivo `.python-version` selecciona Python 3.12 para el entorno del proyecto. uv crea o sincroniza `.venv` usando `uv.lock` e incluye las dependencias de desarrollo. No necesitás activar el entorno para usar `uv run --locked`.
-
-### Configurar las claves locales
-
-Ejecutá sólo el bloque correspondiente a tu shell. Cada variante conserva un `.env` existente.
-
-PowerShell:
+### PowerShell
 
 ```powershell
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-CMD:
+### CMD
 
 ```bat
 if not exist .env copy .env.example .env
 ```
 
-Git Bash, Bash o Zsh:
+### Git Bash, Bash o Zsh
 
 ```bash
 if [ ! -e .env ]; then cp .env.example .env; fi
 ```
 
-Abrí `.env` en tu editor y completá `OPENAI_API_KEY` y/o `GEMINI_API_KEY`. Cada proveedor funciona con su propia clave. El archivo permanece fuera de Git.
+Abrí `.env` en tu editor y reemplazá `yourOpenaiSecretKey` o `yourGoogleAiSecretKey` con la clave que corresponda. Dejá vacía la variable de cualquier proveedor que no uses. `.env` está ignorado por Git. Si el servidor está abierto, detenelo con `Ctrl+C` y ejecutá `web` de nuevo para cargar la configuración.
 
-### Ejecutar la aplicación
+## Activar el entorno
 
-Estos comandos son iguales en PowerShell, CMD, Git Bash y Bash/Zsh:
-
-```console
-uv run --locked nubbix prompts check
-uv run --locked nubbix web
-```
-
-Para otro puerto: `uv run --locked nubbix web --port 8080`. Para una consulta por CLI:
-
-```console
-uv run --locked nubbix respond --provider openai --text "Me cobraron dos veces este mes"
-```
-
-Los comandos de [evaluación](evaluation.md) y [verificación del software](../README.md#verificar-el-software) también usan `uv run --locked` con la misma sintaxis en todos estos shells.
-
-## Activar el entorno, si preferís comandos cortos
-
-La activación agrega temporalmente los ejecutables de `.venv` al PATH de esa terminal:
+La activación es opcional. Agrega los ejecutables de `.venv` al PATH de esa pestaña para que puedas escribir `python` directamente.
 
 | Shell y sistema | Activar |
 | --- | --- |
@@ -144,49 +59,35 @@ La activación agrega temporalmente los ejecutables de `.venv` al PATH de esa te
 | Git Bash en Windows | `source .venv/Scripts/activate` |
 | Bash/Zsh en Linux, macOS o WSL | `source .venv/bin/activate` |
 
-Después podés usar el mismo comando en cualquiera de esos shells:
+Con el entorno activo, `web` inicia el servidor. Agregá `--port` para elegir un puerto distinto del 8000.
 
 ```console
-python -m nubbix_support_ai web
+python -m nubbix_support_ai web --port 8080
 ```
 
-Para salir del entorno, ejecutá `deactivate`. Si PowerShell bloquea `Activate.ps1`, podés ejecutar el Python por su ruta completa; no hace falta cambiar la política de ejecución para iniciar la aplicación.
-
-## Instalación inicial con pip
-
-Esta alternativa sirve para un checkout sin entorno virtual cuando preferís trabajar sin uv. Necesitás Python 3.12 o superior ya instalado. `requirements.txt` contiene las dependencias de ejecución exportadas del lock; el paquete se instala en modo editable para resolver los recursos desde el checkout.
-
-En Windows, creá el entorno desde PowerShell, CMD o Git Bash:
+Usá otra pestaña si querés ejecutar la CLI mientras `web` sigue abierto. Activá `.venv` también en esa pestaña o reemplazá `python` en los ejemplos por el ejecutable del entorno indicado arriba. Estos dos comandos requieren una clave de OpenAI y llaman al modelo. [Guía de evaluación](evaluation.md)
 
 ```console
-py -3.12 -m venv .venv
+python -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
+python -m nubbix_support_ai eval run --provider openai --prompt-version v1 --split dev
 ```
 
-Si tu instalación es Python 3.13, usá `py -3.13` en ese comando. Si no tenés el launcher `py`, podés usar `python -m venv .venv` después de comprobar con `python --version` que corresponde a Python 3.12 o superior.
+Si PowerShell bloquea `Activate.ps1`, usá `.\.venv\Scripts\python.exe` directamente. Para salir del entorno activo, ejecutá `deactivate`.
 
-Luego instalá desde PowerShell o CMD:
+## Usar uv para desarrollo
 
-```powershell
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
-.\.venv\Scripts\python.exe -m pip install --no-deps -e .
+uv sincroniza el entorno con `uv.lock` e instala las herramientas de desarrollo. `requirements.txt`, usado en el inicio rápido con `pip`, contiene las dependencias de ejecución exportadas del mismo lock. Podés instalar uv siguiendo su [guía oficial](https://docs.astral.sh/uv/getting-started/installation/).
+
+Cerrá y volvé a abrir la terminal para recargar el PATH. Si usás la terminal integrada, puede hacer falta reiniciar VS Code. Estos comandos sirven en PowerShell, CMD, Git Bash y Bash/Zsh.
+
+```console
+uv --version
+uv sync --locked
+uv run --locked nubbix prompts check
+uv run --locked nubbix web
 ```
 
-O desde Git Bash:
-
-```bash
-./.venv/Scripts/python.exe -m pip install -r requirements.txt
-./.venv/Scripts/python.exe -m pip install --no-deps -e .
-```
-
-En Bash/Zsh de Linux, macOS o WSL, comprobá primero `python3 --version` y creá e instalá el entorno:
-
-```bash
-python3 -m venv .venv
-./.venv/bin/python -m pip install -r requirements.txt
-./.venv/bin/python -m pip install --no-deps -e .
-```
-
-Después configurá `.env` e iniciá la aplicación con las instrucciones anteriores. Esta alternativa instala el runtime; las herramientas de desarrollo, como pytest, Ruff y mypy, se incluyen al usar `uv sync --locked`.
+`.python-version` indica a uv que use Python 3.12. Con `uv run --locked` podés ejecutar los comandos de verificación con el entorno inactivo. [Pruebas, lint y tipos](../README.md#verificar-el-software)
 
 ## Detener procesos y consultar el código de salida
 
@@ -210,9 +111,11 @@ La cancelación es cooperativa: se procesa en los puntos de espera async, y una 
 
 | Mensaje o situación | Qué comprobar |
 | --- | --- |
-| `uv: command not found` / "uv no se reconoce" | Instalá uv y reabrí la terminal; si `.venv` ya está preparado, usá su Python directamente. |
+| `uv: command not found` o "uv no se reconoce" | Para instalar y ejecutar la app, seguí el [inicio rápido con Python](../README.md#inicio-rápido). Si ya instalaste uv para desarrollo, reabrí la terminal para actualizar el PATH. |
+| `python` o `python3` falta o muestra una versión anterior a 3.12 | Seleccioná un intérprete instalado de Python 3.12 o superior. En Windows, si el lanzador `py` encuentra tu instalación 3.12, usá `py -3.12 --version` y `py -3.12 -m venv .venv` para las primeras dos líneas. Ajustá la versión si instalaste otra. |
+| `ensurepip is not available` al crear `.venv` en Debian o Ubuntu | Para el Python predeterminado, ejecutá `sudo apt install python3-venv` y volvé a crear el entorno. Si elegiste otro intérprete, instalá su paquete `venv`, por ejemplo `python3.12-venv`. |
+| `No module named pip` en un `.venv` creado por uv | Si la app ya está instalada, usá el Python de ese entorno para ejecutarla. Para instalar con `pip`, prepará un entorno nuevo con `venv`. |
 | Bash muestra `.venvScriptspython.exe` | Se copiaron barras `\` de un comando de Windows. Usá `./.venv/Scripts/python.exe` en Git Bash. |
 | No aparece `.venv` al ejecutar `ls` | En Git Bash y Bash/Zsh, `ls -a` incluye los nombres que comienzan con punto. |
 | No existe el ejecutable de `.venv` | Revisá que estés en la raíz del checkout y que hayas instalado el entorno para ese sistema operativo. |
-| `No module named nubbix_support_ai` | Usá el Python de `.venv`; completá `uv sync --locked` o la instalación editable de la alternativa con pip. |
-| La terminal muestra un entorno activo, pero falla `uv` | La activación del entorno y la instalación de uv son independientes. |
+| `No module named nubbix_support_ai` | Confirmá que ejecutás el Python de `.venv`. Si creaste el entorno con `venv`, repetí las dos líneas de instalación con `pip` del inicio rápido. Si usás uv, ejecutá `uv sync --locked`. |

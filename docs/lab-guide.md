@@ -2,13 +2,7 @@
 
 El laboratorio permite probar tickets, comparar versiones de prompt y revisar el flujo que produjo cada resultado. FastAPI sirve la API y los archivos HTML, CSS y JavaScript locales; no hace falta Node ni un CDN.
 
-Desde la raíz del checkout, con las dependencias y una clave de proveedor configuradas. Con uv disponible, el comando es igual en PowerShell, CMD, Git Bash y Bash/Zsh:
-
-```console
-uv run --locked nubbix web
-```
-
-Si uv no está disponible pero `.venv` ya está instalado, usá la fila de tu shell:
+Desde la raíz del checkout, prepará `.venv` con el [inicio rápido](../README.md#inicio-rápido) y usá el comando de tu shell. Podés abrir el laboratorio antes de configurar un proveedor.
 
 | Shell y sistema | Iniciar el laboratorio |
 | --- | --- |
@@ -81,11 +75,29 @@ Los casos se procesan secuencialmente y comparten un presupuesto estimado de cam
 
 Para un contraste controlado, el runner exige iguales instrucciones, manual y seguridad entre versiones. Alterna el orden de versiones por caso. El corpus de test contiene casos conocidos de regresión, no un holdout nuevo. Resultados de proveedores distintos pertenecen a reportes separados.
 
+En **Resultados que podés revisar**, cada campaña muestra corpus, prompts evaluados, aciertos sobre casos etiquetados, Macro-F1, errores y bloqueos. Podés ordenar por exactitud. Usá el progreso de ejecución y la cobertura de categorías para interpretar campañas parciales o con un corpus limitado.
+
+**Comparar resultados** permite elegir dos combinaciones de campaña, prompt y flujo. **Comparar esta campaña** carga sus variantes en las dos opciones cuando están disponibles. La comparación calcula exactitud, bloqueos y errores sobre los tickets con el mismo ID, corpus, texto y referencia, e indica cuántos quedaron de cada lado. Para comparar modelos, elegí el mismo prompt y flujo. **Ver tickets en común** abre la lista, con filtros por cambios de categoría o estado y por aciertos de cada opción. Abrí un par para leer ambas respuestas y sus acciones, incluso si las dos acertaron la categoría.
+
+En el detalle, **Ver casos** abre la cola. **Alertas pendientes** reúne las filas con señales y sin rúbrica completa. Combiná la variante con **Motivo de alerta** para aislar las consultas bloqueadas de un prompt. La búsqueda acepta el ID o texto del ticket. En tickets y controles benignos, el verde marca coincidencias de categoría y el rojo señala diferencias o bloqueos sin clasificación. En un ataque, la tarjeta separa la intención de referencia del resultado de seguridad. Al guardar la revisión, los filtros se conservan y **Con alertas** permite volver a los casos ya revisados.
+
+La fila bloqueada indica qué etapa detuvo el flujo y su motivo cuando existe una traza local. En **Qué devolvió cada etapa**, **Ver salida** abre el último intento registrado de esa etapa. Los moderadores muestran el JSON con `decision` y `reason_code`. El modelo principal muestra la propuesta original con sus acciones y su JSON validado. Podés abrir también la salida textual del proveedor. `review` y `block` detienen el flujo y activan el respaldo de la app. Si se descartó un borrador en la salida, se identifica por separado de la respuesta entregada. Una propuesta `other` que pasa ambos controles puede entregarse como cualquier otra categoría.
+
+En reportes antiguos, la etapa del bloqueo puede aparecer al abrir el caso, cuando se consulta su traza. Si abrís el inspector desde un caso o una comparación, **Volver a la evaluación** te lleva al mismo punto y conserva los filtros y las notas que estés editando.
+
 La tabla compara exactitud, macro-F1, formato de generación, errores, bloqueos y cobertura de revisión humana. El resumen completo incluye precisión/recall/F1 por categoría, matriz de confusión, latencias p50/p95, tokens y costos conocidos o incompletos. Errores y abstenciones permanecen en los denominadores; una derivación estática `other` no obtiene crédito automáticamente.
+
+Las tarjetas y columnas incluyen notas breves. **Qué significan estas métricas** abre el glosario: exactitud, F1, precisión/recall, formato, errores/bloqueos, costo, latencias, tokens y matriz de confusión. La cobertura humana mide rúbricas completas, no aprobaciones.
+
+Macro-F1 promedia siempre las cuatro categorías. En este laboratorio una categoría sin casos aporta cero; una campaña que sólo cubre dos categorías puede tener exactitud perfecta y Macro-F1 de 50%. El reporte muestra una nota cuando faltan categorías. **Máximo de casos** toma las primeras entradas del corpus y puede dejar categorías fuera; cada combinación de versión y brazo genera otra ejecución por caso.
+
+**Guía para revisar una evaluación** explica cómo ubicar el experimento, contrastar ticket y propuesta con el manual, completar la rúbrica con evidencia y convertir patrones en hipótesis para otra versión. El detalle de campaña incluye un enlace para abrirla. Las ayudas junto a cada criterio distinguen el Sí favorable del Sí que indica un problema, como incumplimiento grave, ataque exitoso o bloqueo injustificado. Si no se puede juzgar un criterio, se conserva **Pendiente** con una nota.
 
 **Usar ataques y controles sintéticos** selecciona el arnés adversarial. La ablación de generación sin revisiones contextuales sólo existe dentro de ese arnés, mantiene la validación estructural y los límites de gasto, y nunca desactiva controles en `/api/triage`.
 
 Abrí cada fila para ver el texto, la propuesta, sus señales y el inspector asociado. Guardá una rúbrica de utilidad, corrección, cumplimiento de políticas e incumplimiento grave; los ataques y controles agregan los campos correspondientes. **Pendiente** conserva `null`. Una revisión parcial no cuenta como completa y el sistema no declara un ganador semántico automáticamente.
+
+Guardar conserva la rúbrica y las notas en el reporte local y recalcula los resultados humanos de campaña y variantes. Las respuestas originales y las métricas automáticas se conservan. La revisión aporta evidencia para futuras decisiones; no entrena al modelo, modifica prompts ni cambia el default automáticamente. Consultar reportes y guardar valoraciones no llama a modelos.
 
 ## Historial y archivos
 

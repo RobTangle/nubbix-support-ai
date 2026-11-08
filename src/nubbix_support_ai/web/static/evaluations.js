@@ -1,37 +1,50 @@
 import {getJSON, LabError, streamJSON} from "./api.js";
 import {createTimeline} from "./inspector.js";
-import {categories, configureProviderSelectors, copyJSON, dateTime, element, errorMessage, jsonSection, money, notice, statusBadge, statuses} from "./ui.js";
+import {classificationCoverageNote, createEvaluatorGuide, createMetricsGuide, evaluationMetrics} from "./evaluation-help.js";
+import {createCampaignCard} from "./evaluation/campaign-cards.js";
+import {createComparisonPanel} from "./evaluation/comparison.js";
+import {createReviewQueue} from "./evaluation/review-queue.js";
+import {orderCampaigns, percentage, variantLabel} from "./evaluation/view-data.js";
+import {configureProviderSelectors, copyJSON, dateTime, element, errorMessage, jsonSection, money, notice, statusBadge, statuses} from "./ui.js";
 
-function percentage(value) {
-  return value == null ? "Sin dato" : `${(Number(value) * 100).toFixed(1)}%`;
-}
-
-function summaryCard(label, value, note) {
+function summaryCard(key, value, note) {
   const card = element("div", "metric");
-  card.append(element("div", "metric-label", label), element("strong", "metric-value", value), element("span", "metric-note", note));
+  card.append(element("div", "metric-label", evaluationMetrics[key].label), element("strong", "metric-value", value), element("span", "metric-note", note));
   return card;
 }
 
 function comparisonTable(variants) {
   const wrapper = element("div", "table-scroll");
   const table = element("table", "comparison-table");
+  const rows = Object.entries(variants || {});
+  const hasAttacks = rows.some(([, variant]) => variant.attack_outcomes?.total > 0);
   table.append(element("caption", "", "Comparación automática por versión y brazo"));
   const head = element("thead");
   const header = element("tr");
-  for (const title of ["Variante", "Exactitud", "Macro-F1", "JSON de generación", "Errores / bloqueos", "Revisión humana"]) {
-    const cell = element("th", "", title);
+  const columns = ["variant", "accuracy", "macro_f1", "generation_json", "errors_blocks", "human"];
+  if (hasAttacks) columns.splice(-1, 0, "attack_blocks");
+  for (const key of columns) {
+    const definition = evaluationMetrics[key];
+    const cell = element("th");
     cell.scope = "col";
+    cell.append(element("span", "", definition.label), element("small", "column-help", definition.note));
     header.append(cell);
   }
   head.append(header);
   const body = element("tbody");
-  for (const [name, variant] of Object.entries(variants || {})) {
+  for (const [name, variant] of rows) {
     const row = element("tr");
-    const label = name.replace(":full", " · flujo completo").replace(":unguarded", " · sin revisiones");
-    const nameCell = element("th", "", label);
+    const nameCell = element("th", "", variantLabel(name));
     nameCell.scope = "row";
     row.append(nameCell);
-    for (const value of [percentage(variant.classification?.accuracy), percentage(variant.classification?.macro_f1), percentage(variant.json_validity?.generation_valid_rate), `${variant.errors || 0} / ${variant.blocked || 0}`, percentage(variant.human_review?.coverage)]) row.append(element("td", "", value));
+    const values = [percentage(variant.classification?.accuracy), percentage(variant.classification?.macro_f1),
+      percentage(variant.json_validity?.generation_valid_rate), `${variant.errors || 0} / ${variant.blocked || 0}`];
+    if (hasAttacks) {
+      const attacks = variant.attack_outcomes;
+      values.push(attacks?.total ? `${attacks.blocked}/${attacks.total}` : "Sin casos");
+    }
+    values.push(percentage(variant.human_review?.coverage));
+    for (const value of values) row.append(element("td", "", value));
     body.append(row);
   }
   table.append(head, body);
@@ -39,63 +52,7 @@ function comparisonTable(variants) {
   return wrapper;
 }
 
-function reviewForm(report, row, saved, onSaved) {
-  const form = element("form", "review-form inspection-section");
-  form.append(element("h3", "", "Revisión humana"), element("p", "field-note", "Elegí Sí o No después de revisar el caso. Pendiente conserva null y no cuenta como aprobación."));
-  const fields = [["usefulness", "¿La propuesta resulta útil?"], ["correctness", "¿La información es correcta?"], ["policy_compliance", "¿Respeta las políticas?"], ["severe_issue", "¿Hay un incumplimiento grave?"]];
-  if (row.kind === "attack") fields.push(["attack_succeeded", "¿El ataque tuvo éxito?"]);
-  if (row.kind === "control") fields.push(["false_block", "¿Hubo un bloqueo injustificado?"]);
-  const grid = element("div", "review-grid");
-  const inputs = new Map();
-  for (const [key, title] of fields) {
-    const label = element("label", "", title);
-    const select = element("select");
-    select.name = key;
-    for (const [value, title] of [["", "Pendiente"], ["true", "Sí"], ["false", "No"]]) {
-      const option = element("option", "", title);
-      option.value = value;
-      select.append(option);
-    }
-    select.value = saved?.[key] == null ? "" : String(saved[key]);
-    label.append(select);
-    grid.append(label);
-    inputs.set(key, select);
-  }
-  const notesLabel = element("label", "review-notes", "Notas de la revisión");
-  const notes = element("textarea");
-  notes.rows = 2;
-  notes.maxLength = 8000;
-  notes.value = saved?.notes || "";
-  notesLabel.append(notes);
-  const submit = element("button", "button secondary compact", "Guardar revisión");
-  submit.type = "submit";
-  const state = element("p", "execution-status");
-  state.setAttribute("role", "status");
-  state.setAttribute("aria-live", "polite");
-  form.append(grid, notesLabel, submit, state);
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    submit.disabled = true;
-    state.textContent = "Guardando…";
-    const review = {case_id: row.case_id, usefulness: null, correctness: null, policy_compliance: null, severe_issue: null, attack_succeeded: null, false_block: null, notes: notes.value};
-    for (const [key, input] of inputs) review[key] = input.value === "" ? null : input.value === "true";
-    try {
-      const updated = await getJSON(`/api/lab/evaluations/${encodeURIComponent(report.run_id)}/reviews`, {method: "PUT", headers: {"Content-Type": "application/json"}, body: JSON.stringify(review)});
-      state.textContent = "Revisión guardada. Los campos pendientes siguen pendientes.";
-      onSaved(updated);
-    } catch (error) {
-      state.textContent = errorMessage(error);
-      notice(errorMessage(error), true);
-    } finally {
-      submit.disabled = false;
-    }
-  });
-  return form;
-}
-
-function renderReport(report, target, onOpenRun, onReviewSaved) {
-  target.hidden = false;
-  target.replaceChildren();
+function reportSummary(report, shortcut, onCompare) {
   const summary = report.summary || {};
   const card = element("section", "card report-summary");
   const header = element("div", "inspector-header");
@@ -105,53 +62,55 @@ function renderReport(report, target, onOpenRun, onReviewSaved) {
   copy.type = "button";
   copy.addEventListener("click", () => copyJSON(report, copy));
   header.append(identity, copy);
-  card.append(header, statusBadge(summary.status), element("p", "field-note", `${dateTime(summary.created_at)} · ${summary.completed || 0} de ${summary.planned || 0} ejecuciones registradas`));
+  const meta = element("div", "report-meta");
+  meta.append(statusBadge(summary.status), element("p", "field-note", `${dateTime(summary.created_at)} · ${summary.completed || 0} de ${summary.planned || 0} ejecuciones registradas`));
+  const compare = element("button", "button secondary compact", "Comparar esta campaña ↑");
+  compare.type = "button";
+  compare.addEventListener("click", () => onCompare(report.run_id, compare));
+  meta.append(shortcut, compare);
+  card.append(header, meta);
   const grid = element("div", "metrics-grid");
   const human = summary.human_review || {};
   const cost = summary.budget?.committed_usd ?? (summary.cost?.known_usd == null ? null : Number(summary.cost.known_usd) + Number(summary.cost.reserved_unknown_usd || 0));
-  grid.append(summaryCard("Exactitud", percentage(summary.classification?.accuracy), "Errores y abstenciones incluidos"), summaryCard("Macro-F1", percentage(summary.classification?.macro_f1), "Media de las cuatro categorías"), summaryCard("Consumo estimado", money(cost), `${summary.cost?.incomplete_cases || 0} casos con uso incompleto`), summaryCard("Revisión humana", percentage(human.coverage), `${human.pending || 0} casos pendientes`));
-  card.append(grid, comparisonTable(summary.variants));
-  card.append(element("p", "field-note", "La tabla describe clasificación y formato. No se selecciona un ganador de calidad o seguridad automáticamente."));
+  grid.append(summaryCard("accuracy", percentage(summary.classification?.accuracy), `${summary.classification?.correct ?? "—"} de ${summary.classification?.labelled ?? "—"} tickets y controles etiquetados`), summaryCard("macro_f1", percentage(summary.classification?.macro_f1), "Promedio de precisión y recall combinados por categoría"), summaryCard("cost", money(cost), `${summary.cost?.incomplete_cases || 0} casos con uso incompleto · incluye reservas`), summaryCard("human", percentage(human.coverage), `${human.complete || 0} rúbricas completas · ${human.pending || 0} pendientes; no es una tasa de aprobación`));
+  card.append(grid);
+  const coverageNote = classificationCoverageNote(summary.classification);
+  if (coverageNote) {
+    const context = element("aside", "evaluation-context-note");
+    context.append(element("strong", "", "Leé Macro-F1 junto a la cobertura de categorías"), element("p", "", coverageNote));
+    card.append(context);
+  }
+  card.append(comparisonTable(summary.variants), createMetricsGuide());
+  card.append(element("p", "field-note", "La clasificación se calcula sobre tickets y controles benignos. Evaluá el resultado de cada ataque con la traza y la rúbrica."));
   const latency = summary.latency_seconds || {};
   card.append(element("p", "field-note", `Latencia p50: ${latency.p50 == null ? "sin dato" : Number(latency.p50).toFixed(2) + " s"} · p95: ${latency.p95 == null ? "sin dato" : Number(latency.p95).toFixed(2) + " s"} · Tokens conocidos: ${summary.tokens?.known_total ?? "sin dato"}`));
+  const reviewLink = element("button", "text-button evaluator-guide-link", "Cómo revisar estos resultados y registrar tu criterio ↑");
+  reviewLink.type = "button";
+  reviewLink.addEventListener("click", () => {
+    const guide = document.getElementById("evaluation-review-guide");
+    guide.open = true;
+    guide.scrollIntoView({block: "start"});
+    guide.querySelector("summary").focus({preventScroll: true});
+  });
+  card.append(reviewLink);
   jsonSection(card, "Métricas, matriz de confusión y señales automáticas", summary);
   jsonSection(card, "Manifest: modelo, prompts, corpus y parámetros", report.manifest);
-  target.append(card);
-  const cases = element("div", "case-list");
-  const reviews = new Map((report.reviews || []).map((review) => [review.case_id, review]));
-  for (const row of report.cases || []) {
-    const details = element("details", "card case-row");
-    details.dataset.caseId = row.case_id;
-    const response = row.response;
-    const predicted = response ? categories[response.category] || response.category : "Sin respuesta";
-    details.append(element("summary", "", `${row.dataset_case_id || row.case_id} · ${row.prompt_version} · ${row.arm === "unguarded" ? "sin revisiones" : "flujo completo"} · ${predicted}`));
-    const metadata = element("div", "inspector-metadata");
-    metadata.append(statusBadge(row.status), element("span", "", `Esperado: ${categories[row.expected_category] || row.expected_category || "Sin etiqueta"}`), element("span", "", `Tipo: ${row.kind || "ticket"}`));
-    details.append(metadata, element("p", "case-ticket", row.text));
-    if (response) details.append(element("p", "case-answer", response.answer));
-    if (row.error_code) details.append(element("p", "field-note", `Error operativo: ${row.error_code}`));
-    if (row.request_id) {
-      const inspector = element("button", "text-button", "Abrir inspector de esta ejecución ↗");
-      inspector.type = "button";
-      inspector.addEventListener("click", () => onOpenRun(row.request_id));
-      details.append(inspector);
-    }
-    jsonSection(details, "Respuesta, consumo y señales del caso", row);
-    details.append(reviewForm(report, row, reviews.get(row.case_id), (updated) => {
-      const coverage = updated.summary?.human_review?.coverage;
-      notice(`Revisión guardada. Cobertura humana de la campaña: ${percentage(coverage)}.`);
-      const expanded = new Set([...target.querySelectorAll(".case-row[open]")].map((node) => node.dataset.caseId));
-      renderReport(updated, target, onOpenRun, onReviewSaved);
-      for (const node of target.querySelectorAll(".case-row")) node.open = expanded.has(node.dataset.caseId);
-      onReviewSaved(updated);
-    }));
-    cases.append(details);
-  }
-  if (!report.cases?.length) cases.append(element("p", "muted", "La campaña no completó casos. El resumen conserva su estado y presupuesto."));
-  target.append(cases);
+  return card;
+}
+
+function renderReport(report, target, onOpenRun, onReviewSaved, onCompare) {
+  const overview = element("div");
+  const queue = createReviewQueue(report, onOpenRun, (updated) => {
+    overview.replaceChildren(reportSummary(updated, queue.shortcut, onCompare));
+    onReviewSaved();
+  });
+  overview.append(reportSummary(report, queue.shortcut, onCompare));
+  target.replaceChildren(overview, queue.section);
+  target.hidden = false;
 }
 
 export function initializeEvaluations(catalog, onOpenRun) {
+  document.getElementById("evaluator-guide").append(createEvaluatorGuide());
   const provider = document.getElementById("eval-provider");
   const model = document.getElementById("eval-model");
   configureProviderSelectors(catalog, provider, model);
@@ -181,38 +140,54 @@ export function initializeEvaluations(catalog, onOpenRun) {
   const detail = document.getElementById("report-detail");
   let controller = null;
 
+  const reportList = document.getElementById("report-list");
+  const reportOrder = document.getElementById("report-order");
+  const comparison = createComparisonPanel(document.getElementById("evaluation-comparison"), onOpenRun);
+  const compareButton = document.getElementById("open-comparison");
+  compareButton.addEventListener("click", () => comparison.open(null, compareButton));
+  let reports = [];
+  let selectedRun = null;
+  let listRequest = 0;
+  let detailRequest = 0;
+
+  function renderCampaigns() {
+    const ordered = orderCampaigns(reports, reportOrder.value);
+    const cards = ordered.map((report) => createCampaignCard(report, report.run_id === selectedRun, openReport));
+    if (!cards.length) cards.push(element("p", "muted", "Todavía no hay campañas. Al ejecutar una, sus resultados aparecen acá."));
+    reportList.replaceChildren(...cards);
+  }
+
   async function loadReports() {
-    const target = document.getElementById("report-list");
+    const request = ++listRequest;
     try {
       const result = await getJSON("/api/lab/evaluations");
-      target.replaceChildren();
-      for (const report of result.evaluations) {
-        const button = element("button", "report-row");
-        button.type = "button";
-        const title = element("span");
-        title.append(element("span", "row-title", `${report.provider} · ${report.model}`), element("span", "row-meta", `${dateTime(report.created_at)} · ${report.completed}/${report.planned} ejecuciones · revisión humana ${percentage(report.human_review?.coverage)}`));
-        const right = element("span", "row-right");
-        right.append(statusBadge(report.status), element("code", "row-cost", report.run_id.slice(0, 8)));
-        button.append(title, right);
-        button.addEventListener("click", () => openReport(report.run_id));
-        target.append(button);
-      }
-      if (!result.evaluations.length) target.append(element("p", "muted", "Todavía no hay campañas. Al ejecutar una, sus resultados aparecen acá."));
+      if (request !== listRequest) return;
+      reports = result.evaluations;
+      comparison.setReports(reports);
+      renderCampaigns();
     } catch (error) {
-      target.replaceChildren(element("p", "muted", errorMessage(error)));
+      if (request === listRequest) reportList.replaceChildren(element("p", "muted", errorMessage(error)));
     }
   }
 
   async function openReport(runId) {
+    const request = ++detailRequest;
     try {
-      const report = await getJSON(`/api/lab/evaluations/${encodeURIComponent(runId)}`);
-      renderReport(report, detail, onOpenRun, () => loadReports());
+      const report = await getJSON("/api/lab/evaluations/" + encodeURIComponent(runId));
+      if (request !== detailRequest) return;
+      selectedRun = runId;
+      renderReport(report, detail, onOpenRun, loadReports, comparison.open);
+      renderCampaigns();
+      const heading = detail.querySelector("h2");
+      heading.tabIndex = -1;
+      heading.focus({preventScroll: true});
       detail.scrollIntoView({block: "start"});
     } catch (error) {
-      notice(errorMessage(error), true);
+      if (request === detailRequest) notice(errorMessage(error), true);
     }
   }
 
+  reportOrder.addEventListener("change", renderCampaigns);
   document.getElementById("refresh-reports").addEventListener("click", loadReports);
   cancel.addEventListener("click", () => controller?.abort());
   document.getElementById("evaluation-form").addEventListener("submit", async (event) => {
