@@ -2,7 +2,17 @@
 
 Asistente de soporte con IA para clasificar consultas de facturación, problemas técnicos, cuentas y otros asuntos, y preparar respuestas y acciones sugeridas para un equipo de atención al cliente. Las propuestas se revisan antes de mostrarse y las acciones quedan a cargo de una persona.
 
-[Inicio rápido](#inicio-rápido) · [Cómo funciona](#cómo-funciona) · [Documentación](#documentación)
+Podés probar tickets desde la línea de comandos (CLI) o desde el laboratorio web.
+
+[Inicio rápido](#inicio-rápido) · [Uso con CLI](#uso-con-cli) · [Laboratorio web](#laboratorio-web) · [Cómo funciona](#cómo-funciona) · [Evaluaciones](#evaluaciones-y-resultados) · [Documentación](#documentación)
+
+## Laboratorio web
+
+Probá un ticket desde el navegador. Elegí el proveedor, el modelo y la versión del prompt, seguí las etapas en vivo y revisá la propuesta, las acciones sugeridas, el JSON y la traza. [Abrir el laboratorio](#primera-prueba-en-el-laboratorio)
+
+![Laboratorio de Nubbix con el formulario del ticket a la izquierda y la propuesta de facturación con sus acciones sugeridas a la derecha](docs/images/laboratorio-ticket.jpg)
+
+*Respuesta guardada de un ticket sintético de facturación, reproducida en el laboratorio.*
 
 ## Inicio rápido
 
@@ -10,9 +20,9 @@ Necesitás Python 3.12 o superior con `venv` y `pip`. uv es opcional. Si Debian 
 
 Abrí la terminal en la raíz del clon, donde está `pyproject.toml`. En Windows Terminal o VS Code, elegí el bloque según el shell de la pestaña. [Perfiles de terminal y WSL](docs/setup.md#elegir-el-shell)
 
-### 1. Instalar y abrir el laboratorio
+### 1. Instalar la aplicación
 
-En un clon nuevo, comprobá que la primera línea del bloque muestre Python 3.12 o superior y ejecutá el resto. Los comandos crean `.venv`, usan su `pip` para instalar las dependencias fijadas en `requirements.txt` e instalan el paquete en modo editable para que encuentre los prompts y datasets del clon. Si ya instalaste el proyecto, podés saltar a los comandos de arranque. [Usar un entorno existente](docs/setup.md#usar-un-entorno-existente)
+En un clon nuevo, comprobá que la primera línea del bloque muestre Python 3.12 o superior y ejecutá el resto. Los comandos crean `.venv`, usan su `pip` para instalar las dependencias fijadas en `requirements.txt` e instalan el paquete en modo editable para que encuentre los prompts y datasets del clon. Si ya instalaste el proyecto, podés pasar a la configuración del proveedor. [Usar un entorno existente](docs/setup.md#usar-un-entorno-existente)
 
 #### PowerShell en Windows
 
@@ -22,7 +32,6 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 .\.venv\Scripts\python.exe -m pip install --no-deps -e .
 .\.venv\Scripts\python.exe -m nubbix_support_ai prompts check
-.\.venv\Scripts\python.exe -m nubbix_support_ai web
 ```
 
 #### CMD en Windows
@@ -33,7 +42,6 @@ python -m venv .venv
 .venv\Scripts\python.exe -m pip install -r requirements.txt
 .venv\Scripts\python.exe -m pip install --no-deps -e .
 .venv\Scripts\python.exe -m nubbix_support_ai prompts check
-.venv\Scripts\python.exe -m nubbix_support_ai web
 ```
 
 #### Git Bash en Windows
@@ -44,7 +52,6 @@ python -m venv .venv
 ./.venv/Scripts/python.exe -m pip install -r requirements.txt
 ./.venv/Scripts/python.exe -m pip install --no-deps -e .
 ./.venv/Scripts/python.exe -m nubbix_support_ai prompts check
-./.venv/Scripts/python.exe -m nubbix_support_ai web
 ```
 
 #### Bash/Zsh en Linux, macOS o WSL
@@ -55,32 +62,70 @@ python3 -m venv .venv
 ./.venv/bin/python -m pip install -r requirements.txt
 ./.venv/bin/python -m pip install --no-deps -e .
 ./.venv/bin/python -m nubbix_support_ai prompts check
-./.venv/bin/python -m nubbix_support_ai web
 ```
-
-Con el servidor en ejecución, podés abrir el laboratorio y consultar el historial y los reportes sin claves. [Abrir el laboratorio en el puerto 8000](http://127.0.0.1:8000)
-
-Detené el servidor con `Ctrl+C`. La aplicación da hasta cinco segundos a las solicitudes activas antes de cancelar las pendientes y esperar su limpieza. [Cancelación y cierre](docs/lab-guide.md#cancelar-fallar-y-volver-a-intentar)
 
 ### 2. Configurar un proveedor para analizar tickets
 
 Creá `.env` a partir de `.env.example` si todavía no existe y completá `OPENAI_API_KEY` o `GEMINI_API_KEY` según el proveedor que vayas a usar. Si sólo vas a usar uno, dejá vacía la variable del otro. [Crear `.env` en tu shell](docs/setup.md#configurar-las-claves-locales)
 
-Si el servidor ya está abierto, detenelo con `Ctrl+C` y repetí el comando `web` para cargar las claves.
-
 Analizar un ticket o ejecutar una evaluación puede generar cargos del proveedor. La versión predeterminada del prompt es `v5`. [Historial de prompts](prompts/CHANGELOG.md)
 
-## Primera prueba
+## Uso con CLI
 
-Con el laboratorio abierto y una clave configurada:
+Con una clave configurada, ejecutá `respond` desde la raíz del clon. Los comandos usan el Python de `.venv` directamente. Para Gemini, reemplazá `--provider openai` por `--provider google`.
 
-1. Elegí el proveedor disponible y conservá el modelo y la versión de prompt seleccionados por la aplicación.
+### PowerShell en Windows
+
+```powershell
+.\.venv\Scripts\python.exe -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
+```
+
+### CMD en Windows
+
+```bat
+.venv\Scripts\python.exe -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
+```
+
+### Git Bash en Windows
+
+```bash
+./.venv/Scripts/python.exe -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
+```
+
+### Bash/Zsh en Linux, macOS o WSL
+
+```bash
+./.venv/bin/python -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
+```
+
+La CLI imprime `answer`, `confidence`, `category` y `actions` como JSON en stdout. Los errores operativos se escriben en stderr y devuelven un código de salida distinto de cero.
+
+En `respond` y las campañas de evaluación, `Ctrl+C` cancela con código de salida `130`. Una señal `SIGTERM` capturable usa `143`. Ambos esperan la limpieza y conservan los registros parciales. [Cierre y señales según el sistema](docs/setup.md#detener-procesos-y-consultar-el-código-de-salida)
+
+## Primera prueba en el laboratorio
+
+Iniciá el servidor desde la raíz del clon con el comando de tu shell.
+
+| Shell | Comando |
+| --- | --- |
+| PowerShell en Windows | `.\.venv\Scripts\python.exe -m nubbix_support_ai web` |
+| CMD en Windows | `.venv\Scripts\python.exe -m nubbix_support_ai web` |
+| Git Bash en Windows | `./.venv/Scripts/python.exe -m nubbix_support_ai web` |
+| Bash/Zsh en Linux, macOS o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
+
+Podés abrir el laboratorio y consultar el historial y los reportes sin claves. Si modificás `.env` con el servidor abierto, reinicialo para cargar la configuración. [Abrir el laboratorio en el puerto 8000](http://127.0.0.1:8000)
+
+Con una clave configurada, probá un ticket.
+
+1. Elegí el proveedor disponible y conservá el modelo y el prompt preseleccionados.
 2. Usá el ejemplo **Cobro duplicado** o escribí: "Veo dos cargos iguales en mi tarjeta. ¿Me ayudan a revisarlo?".
 3. Presioná **Analizar ticket**. Este paso inicia las llamadas al proveedor; el timeline muestra las etapas e intentos.
 4. Al terminar, revisá la propuesta y abrí **Ver contrato JSON**: contiene `answer`, `confidence`, `category` y `actions`. La respuesta concreta depende del modelo y sus controles.
 5. Abrí el inspector para ver los prompts, las respuestas, el consumo y las validaciones; después podés recuperar la corrida desde **Historial**.
 
 Si el flujo queda bloqueado o falla, revisá su estado y los eventos en lugar de interpretarlo como una respuesta satisfactoria. La [guía del laboratorio](docs/lab-guide.md) explica cada señal y cómo cancelar una ejecución.
+
+Detené el servidor con `Ctrl+C`. La aplicación da hasta cinco segundos a las solicitudes activas antes de cancelar las pendientes y esperar su limpieza. [Cancelación y cierre](docs/lab-guide.md#cancelar-fallar-y-volver-a-intentar)
 
 ## Qué permite hacer
 
@@ -101,29 +146,7 @@ El proveedor elegido ejecuta las tres etapas que requieren un modelo: entrada, g
 
 La aplicación utiliza Python, FastAPI, Pydantic y los SDK oficiales de ambos proveedores. FastAPI sirve también el laboratorio en HTML, CSS y JavaScript, sin una compilación frontend independiente. La [arquitectura y su diagrama de flujo](docs/architecture.md) explican las responsabilidades y las decisiones de diseño.
 
-## Otros modos de uso
-
-### CLI
-
-En otra pestaña, activá `.venv` para usar `python` como en los ejemplos o reemplazalo por la ruta al ejecutable del entorno. Elegí el comando según la clave que hayas configurado. [Activación](docs/setup.md#activar-el-entorno) · [Rutas por shell](docs/setup.md#elegir-el-shell)
-
-**OpenAI**
-
-```console
-python -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
-```
-
-**Google Gemini**
-
-```console
-python -m nubbix_support_ai respond --provider google --text "Me cobraron dos veces este mes"
-```
-
-`respond` escribe sólo los cuatro campos públicos en stdout: `answer`, `confidence`, `category` y `actions`. Los errores operativos usan stderr y un código de salida no exitoso. Estas consultas consumen API.
-
-En `respond` y las campañas de evaluación, `Ctrl+C` cancela con código de salida `130`; una señal `SIGTERM` capturable usa `143`. Ambos esperan la limpieza y conservan los registros parciales. Consultá [cierre y señales según el sistema](docs/setup.md#detener-procesos-y-consultar-el-código-de-salida).
-
-### API HTTP
+## API HTTP
 
 Con el servidor iniciado, abrí [la documentación interactiva de la API](http://127.0.0.1:8000/docs). Permite probar `POST /api/triage` desde el navegador, sin diferencias de comillas o continuaciones de línea entre shells.
 
@@ -153,7 +176,13 @@ Una consulta permitida normalmente realiza tres llamadas: revisión de entrada, 
 
 ## Evaluaciones y resultados
 
-Elegí un comando para un proveedor con clave configurada. Usá `python` con `.venv` activo o indicá la ruta del intérprete del entorno. [Rutas por shell](docs/setup.md#elegir-el-shell)
+En **Evaluaciones** podés ejecutar campañas y comparar prompts o modelos sobre los tickets que tienen en común. Filtrá por cambios de categoría o estado y abrí un caso para leer ambas respuestas y sus acciones.
+
+![Comparación de dos campañas con exactitud, bloqueos y errores, y un ticket que una versión bloqueó y la otra clasificó correctamente](docs/images/laboratorio-evaluaciones.jpg)
+
+*Comparación de v2 (A) y v5 (B) a partir de dos campañas guardadas con el mismo modelo sobre 40 tickets sintéticos de `test`.*
+
+Para ejecutar una campaña desde la terminal, elegí un comando para un proveedor con clave configurada. Usá `python` con `.venv` activo o indicá la ruta del intérprete del entorno. [Rutas por shell](docs/setup.md#elegir-el-shell)
 
 ```console
 python -m nubbix_support_ai eval compare --provider openai --split dev --prompt-versions v1 v2
