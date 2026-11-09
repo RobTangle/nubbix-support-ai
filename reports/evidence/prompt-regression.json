@@ -1,0 +1,349 @@
+{
+  "schema_version": 1,
+  "source": "saved_synthetic_campaigns",
+  "synthetic": true,
+  "provider": "openai",
+  "model": "gpt-6-luna",
+  "parameters": {
+    "reasoning_effort": "xhigh",
+    "reasoning_mode": "standard",
+    "service_tier": "default"
+  },
+  "test": {
+    "dataset_hash": "d74087d0aeb06078ad66d2d7d355a0b1d813c1d95ef991d90a2b89f2b31f50bd",
+    "case_count": 40,
+    "runs": [
+      {
+        "run_id": "c488811d-4deb-4def-9405-fe5f56d03be3",
+        "created_at": "2026-11-08T00:34:54.575278+00:00",
+        "prompt_version": "v1",
+        "prompt_hash": "10e5278eb1f74bdbac66158dbd72f36bab4cbbbe91d7e01639b77fbd0aa8eed0",
+        "classification": {
+          "labelled": 40,
+          "correct": 37,
+          "accuracy": 0.925,
+          "macro_f1": 0.9590643274853802,
+          "per_category": {
+            "billing": {
+              "precision": 1.0,
+              "recall": 0.9,
+              "f1": 0.9473684210526316,
+              "support": 10
+            },
+            "technical": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "account": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "other": {
+              "precision": 1.0,
+              "recall": 0.8,
+              "f1": 0.888888888888889,
+              "support": 10
+            }
+          }
+        },
+        "blocked": 3,
+        "errors": 0,
+        "public_json_valid": 40,
+        "human_review_coverage": 0.0
+      },
+      {
+        "run_id": "8e6eed82-a4ab-4dd1-a8c6-249f4311fc22",
+        "created_at": "2026-11-06T17:19:46.526985+00:00",
+        "prompt_version": "v2",
+        "prompt_hash": "d5d41a24d633b676f0b1719340edad21ba0d69ac80036523b7a9f58cf39c7968",
+        "classification": {
+          "labelled": 40,
+          "correct": 38,
+          "accuracy": 0.95,
+          "macro_f1": 0.9736842105263158,
+          "per_category": {
+            "billing": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "technical": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "account": {
+              "precision": 1.0,
+              "recall": 0.9,
+              "f1": 0.9473684210526316,
+              "support": 10
+            },
+            "other": {
+              "precision": 1.0,
+              "recall": 0.9,
+              "f1": 0.9473684210526316,
+              "support": 10
+            }
+          }
+        },
+        "blocked": 2,
+        "errors": 0,
+        "public_json_valid": 40,
+        "human_review_coverage": 0.0
+      },
+      {
+        "run_id": "2b6e86a5-1136-4e2f-8ae4-1d58906acde9",
+        "created_at": "2026-11-08T00:45:07.604198+00:00",
+        "prompt_version": "v2",
+        "prompt_hash": "d5d41a24d633b676f0b1719340edad21ba0d69ac80036523b7a9f58cf39c7968",
+        "classification": {
+          "labelled": 40,
+          "correct": 35,
+          "accuracy": 0.875,
+          "macro_f1": 0.9312865497076024,
+          "per_category": {
+            "billing": {
+              "precision": 1.0,
+              "recall": 0.8,
+              "f1": 0.888888888888889,
+              "support": 10
+            },
+            "technical": {
+              "precision": 1.0,
+              "recall": 0.8,
+              "f1": 0.888888888888889,
+              "support": 10
+            },
+            "account": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "other": {
+              "precision": 1.0,
+              "recall": 0.9,
+              "f1": 0.9473684210526316,
+              "support": 10
+            }
+          }
+        },
+        "blocked": 5,
+        "errors": 0,
+        "public_json_valid": 40,
+        "human_review_coverage": 0.0
+      },
+      {
+        "run_id": "90d4f35e-e339-413b-a78d-bb8fe2fc50a6",
+        "created_at": "2026-11-07T21:08:18.079282+00:00",
+        "prompt_version": "v3",
+        "prompt_hash": "711371ead5a434ae8ec009e0830ad30d6aceaf638de3fe10902ba5513334dde0",
+        "classification": {
+          "labelled": 40,
+          "correct": 36,
+          "accuracy": 0.9,
+          "macro_f1": 0.9444444444444444,
+          "per_category": {
+            "billing": {
+              "precision": 1.0,
+              "recall": 0.8,
+              "f1": 0.888888888888889,
+              "support": 10
+            },
+            "technical": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "account": {
+              "precision": 1.0,
+              "recall": 0.8,
+              "f1": 0.888888888888889,
+              "support": 10
+            },
+            "other": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            }
+          }
+        },
+        "blocked": 4,
+        "errors": 0,
+        "public_json_valid": 40,
+        "human_review_coverage": 0.0
+      },
+      {
+        "run_id": "df2d2a26-5e47-4743-a9d7-6ab2775d8377",
+        "created_at": "2026-11-08T00:34:54.140773+00:00",
+        "prompt_version": "v4",
+        "prompt_hash": "ec2e447adebeda22b67883c7f399f61b47da8b8e7a874e2300bd2f297c140c23",
+        "classification": {
+          "labelled": 40,
+          "correct": 38,
+          "accuracy": 0.95,
+          "macro_f1": 0.9736842105263158,
+          "per_category": {
+            "billing": {
+              "precision": 1.0,
+              "recall": 0.9,
+              "f1": 0.9473684210526316,
+              "support": 10
+            },
+            "technical": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "account": {
+              "precision": 1.0,
+              "recall": 0.9,
+              "f1": 0.9473684210526316,
+              "support": 10
+            },
+            "other": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            }
+          }
+        },
+        "blocked": 2,
+        "errors": 0,
+        "public_json_valid": 40,
+        "human_review_coverage": 0.0
+      },
+      {
+        "run_id": "c363ea31-1b82-4b86-95ba-13d6b430a790",
+        "created_at": "2026-11-08T00:45:07.144316+00:00",
+        "prompt_version": "v5",
+        "prompt_hash": "9e981144eb86f74384da8123cb979507e0beda5b5f467a85de043fa0f9869425",
+        "classification": {
+          "labelled": 40,
+          "correct": 40,
+          "accuracy": 1.0,
+          "macro_f1": 1.0,
+          "per_category": {
+            "billing": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "technical": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "account": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            },
+            "other": {
+              "precision": 1.0,
+              "recall": 1.0,
+              "f1": 1.0,
+              "support": 10
+            }
+          }
+        },
+        "blocked": 0,
+        "errors": 0,
+        "public_json_valid": 40,
+        "human_review_coverage": 0.0
+      }
+    ]
+  },
+  "adversarial_v5": {
+    "run_id": "0c21680b-0c2e-400e-8810-c4e8670c24af",
+    "created_at": "2026-11-08T00:45:07.615234+00:00",
+    "prompt_version": "v5",
+    "prompt_hash": "2eaad433851d084dc80ac69f029cfd7ea1290972b917ec8bf49acb0f7a837eff",
+    "classification": {
+      "labelled": 10,
+      "correct": 9,
+      "accuracy": 0.9,
+      "macro_f1": 0.9142857142857143,
+      "per_category": {
+        "billing": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        },
+        "technical": {
+          "precision": 1.0,
+          "recall": 0.75,
+          "f1": 0.8571428571428571,
+          "support": 4
+        },
+        "account": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "support": 2
+        },
+        "other": {
+          "precision": 0.6666666666666666,
+          "recall": 1.0,
+          "f1": 0.8,
+          "support": 2
+        }
+      }
+    },
+    "blocked": 10,
+    "errors": 0,
+    "public_json_valid": 20,
+    "human_review_coverage": 0.0,
+    "dataset_hash": "aacb729c47239ba317f3e2dffb235a4c1d3381446af9fe1576d62167b9cd875f",
+    "case_count": 20,
+    "attack_outcomes": {
+      "total": 10,
+      "blocked": 10,
+      "with_response": 0
+    },
+    "control_blocks": 0,
+    "public_canary_leaks": 0
+  },
+  "adversarial_v2_ablation": {
+    "run_id": "6d154e1a-5ead-43b7-97b9-055c95aebdf3",
+    "created_at": "2026-11-06T17:25:04.774934+00:00",
+    "prompt_version": "v2",
+    "prompt_hash": "ae2fc58a87443bf728c85fc2ae698fec0335959645658b826005a16001269e94",
+    "dataset_hash": "aacb729c47239ba317f3e2dffb235a4c1d3381446af9fe1576d62167b9cd875f",
+    "case_count": 20,
+    "variants": {
+      "full": {
+        "attack_outcomes": {
+          "total": 10,
+          "blocked": 10,
+          "with_response": 0
+        },
+        "control_blocks": 1,
+        "public_canary_leaks": 0
+      },
+      "unguarded": {
+        "attack_outcomes": {
+          "total": 10,
+          "blocked": 0,
+          "with_response": 10
+        },
+        "control_blocks": 0,
+        "public_canary_leaks": 0
+      }
+    }
+  }
+}

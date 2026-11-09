@@ -110,6 +110,49 @@ python -m nubbix_support_ai respond --provider openai --text "Me cobraron dos ve
 
 La CLI imprime `answer`, `confidence`, `category` y `actions` como JSON en stdout. Los errores operativos se escriben en stderr y devuelven un código de salida distinto de cero.
 
+### Ejemplo de respuesta y métricas
+
+Con el entorno activo, ejecutá este comando para probar un ticket sintético con OpenAI y `v5`. La [ejecución de referencia](reports/evidence/cli-smoke.json) se hizo desde la CLI en Windows con razonamiento `xhigh`.
+
+```console
+python -m nubbix_support_ai respond --provider openai --model gpt-6-luna --prompt-version v5 --text "Hola, aparecen dos cargos de la suscripción de este mes. ¿Pueden revisarlos?"
+```
+
+La respuesta validada que quedó registrada en esa verificación fue la siguiente.
+
+```json
+{
+  "answer": "Sí, podemos solicitar una revisión. Compartinos la fecha de los cargos, la referencia y el comprobante con cualquier dato sensible oculto. Facturación verificará los cargos antes de confirmar si corresponde algún ajuste.",
+  "confidence": 0.95,
+  "category": "billing",
+  "actions": [
+    "Enviar la fecha de ambos cargos.",
+    "Compartir la referencia y el comprobante ocultando información sensible.",
+    "Derivar a facturación para verificar los cargos."
+  ]
+}
+```
+
+Por defecto, el servicio agrega una línea por solicitud procesada a `data/metrics.jsonl`. Estos campos del registro de la misma corrida muestran los tokens sumados entre etapas, la latencia total y el costo estimado en USD.
+
+```json
+{
+  "request_id": "4fe1409f-0d31-4f7c-b5de-6274cc769c70",
+  "timestamp": "2026-11-09T01:20:43.432541+00:00",
+  "input_tokens": 2344,
+  "output_tokens": 323,
+  "total_tokens": 2667,
+  "latency_seconds": 12.235,
+  "estimated_cost_usd": "0.000422750"
+}
+```
+
+Después de probar la CLI, podés leer el último registro con el mismo intérprete.
+
+```console
+python -c "from pathlib import Path; print(Path('data/metrics.jsonl').read_text(encoding='utf-8').splitlines()[-1])"
+```
+
 En `respond` y las campañas de evaluación, `Ctrl+C` cancela con código de salida `130`. Una señal `SIGTERM` capturable usa `143`. Ambos esperan la limpieza y conservan los registros parciales. [Cierre y señales según el sistema](docs/setup.md#detener-procesos-y-consultar-el-código-de-salida)
 
 ## Primera prueba en el laboratorio
@@ -153,9 +196,17 @@ CLI, API y laboratorio utilizan el mismo servicio. El recorrido habitual es:
 
 **Consulta → revisión de entrada → generación → validación del JSON → revisión de salida → propuesta.**
 
-El proveedor elegido ejecuta las tres etapas que requieren un modelo: entrada, generación y salida. Los controles pueden derivar a una respuesta estática de revisión humana. Los fallos operativos se informan como errores, y el historial conserva las etapas e intentos para inspección.
+El proveedor elegido ejecuta las tres etapas que requieren un modelo. El historial conserva las etapas e intentos, incluidos los fallos operativos.
 
-La aplicación utiliza Python, FastAPI, Pydantic y los SDK oficiales de ambos proveedores. FastAPI sirve también el laboratorio en HTML, CSS y JavaScript, sin una compilación frontend independiente. La [arquitectura y su diagrama de flujo](docs/architecture.md) explican las responsabilidades y las decisiones de diseño.
+Pydantic valida el JSON de cada etapa. Ante una respuesta que no se puede parsear o que incumple el esquema, el ejecutor reintenta con una instrucción de reparación si queda un intento dentro del plazo y el presupuesto.
+
+### Contexto y decisiones de diseño
+
+Cada versión combina instrucciones con un manual de soporte que define categorías, datos permitidos y criterios de derivación. El manual da al modelo una referencia explícita para fundamentar sus propuestas. El ticket viaja aparte como un dato JSON no confiable.
+
+`v1` usa instrucciones y contexto sin ejemplos. `v2` agrega cuatro demostraciones, una por categoría, y mantiene el manual, las instrucciones y los controles para medir el aporte de few-shot. `v5` conserva la categoría de la consulta cuando la respuesta necesita derivarla o pedir más datos. Se eligió como versión predeterminada por sus resultados en `test`. [Prompts versionados](docs/prompting.md) · [Historial de prompts](prompts/CHANGELOG.md)
+
+FastAPI comparte el servicio de triage con la CLI y sirve el laboratorio local. Pydantic define un contrato común para ambos SDK. Los registros JSONL y los reportes por campaña permiten inspeccionar ejecuciones locales y contrastarlas con las versiones y el dataset guardados en el manifiesto. [Arquitectura y diagrama de flujo](docs/architecture.md)
 
 ## API HTTP
 
@@ -171,15 +222,22 @@ La respuesta de éxito tiene los mismos cuatro campos que la CLI. Ejecutar esta 
 
 ## Configuración, modelos y consumo
 
-Estas variables se pueden definir en `.env`; los valores de la tabla son los predeterminados:
+Podés ajustar estos valores en `.env`.
 
 | Variable | Default |
 |---|---|
+| `NUBBIX_PROVIDER` | `openai` |
+| `NUBBIX_PROMPT` | Versión predeterminada del registro (`v5`) |
 | `NUBBIX_OPENAI_MODEL` | `gpt-6-luna` |
 | `NUBBIX_REASONING_EFFORT` | `xhigh` |
 | `NUBBIX_GOOGLE_MODEL` | `gemini-3.5-flash-lite`, thinking mínimo |
 | `NUBBIX_TICKET_USD` | `0.05` |
 | `NUBBIX_CAMPAIGN_USD` | `2` |
+| `NUBBIX_TIMEOUT_SECONDS` | `15` por intento |
+| `NUBBIX_DEADLINE_SECONDS` | `60` por ticket |
+| `NUBBIX_MAX_OUTPUT_TOKENS` | `8192` por llamada |
+| `NUBBIX_DATA_DIR` | `data` |
+| `NUBBIX_REPORTS_DIR` | `reports/local` |
 
 Una consulta permitida normalmente realiza tres llamadas: revisión de entrada, generación y revisión de salida. Cada etapa admite dos intentos totales, compartidos entre errores transitorios y formato inválido. El máximo por intento es 15 segundos y el plazo compartido por ticket es 60 segundos.
 
@@ -193,19 +251,64 @@ En **Evaluaciones** podés ejecutar campañas y comparar prompts o modelos sobre
 
 *Comparación de v2 (A) y v5 (B) a partir de dos campañas guardadas con el mismo modelo sobre 40 tickets sintéticos de `test`.*
 
-Para ejecutar una campaña desde la terminal, elegí un comando para un proveedor con clave configurada. Usá `python` con el entorno activo o indicá la ruta al intérprete de `.venv`. [Rutas por shell](docs/setup.md#elegir-el-shell)
+### Ejecutar y leer campañas desde la CLI
+
+El dataset tiene 80 tickets sintéticos etiquetados repartidos entre `dev` y `test`, con 10 casos de cada categoría por conjunto. El runner usa el mismo servicio que `respond` y genera resultados globales y por categoría. [Dataset](datasets/tickets.jsonl) · [Runner](src/nubbix_support_ai/evaluation/runner.py)
+
+Elegí un comando para un proveedor con clave configurada. Usá `python` con el entorno activo o indicá la ruta al intérprete de `.venv`. [Rutas por shell](docs/setup.md#elegir-el-shell)
 
 ```console
 python -m nubbix_support_ai eval compare --provider openai --split dev --prompt-versions v1 v2
-python -m nubbix_support_ai eval run --provider google --prompt-version v1 --split test
-python -m nubbix_support_ai eval adversarial --provider openai --prompt-version v1 --ablation
+python -m nubbix_support_ai eval run --provider openai --split test --prompt-version v5
 ```
 
-Estos comandos consumen API. `--max-cost-usd` permite fijar el presupuesto de una campaña. `datasets/` contiene 80 tickets y 20 casos de seguridad; `evaluation/`, dentro del paquete, contiene el runner y las métricas. Los resultados se guardan en `reports/local/` y pueden revisarse desde el laboratorio.
+Estos comandos llaman al proveedor. Podés usar `--max-cost-usd` para fijar el presupuesto local de la campaña. `compare` alterna las versiones por caso con el mismo modelo y requiere que compartan instrucciones, manual y reglas de revisión y reparación. Para contrastar versiones con cambios en esos componentes, corré una campaña `run` por versión sobre el mismo conjunto.
 
-Los errores y abstenciones de tickets y controles benignos permanecen en el denominador de clasificación. Los ataques se miden por separado. La rúbrica permite revisar la utilidad, corrección y respeto de políticas. El corpus sintético sirve como conjunto conocido de regresión.
+La salida de cada campaña indica su carpeta en el campo `directory`. Para revisar una corrida local, reemplazá `<id>` por su identificador o usá la ruta devuelta en `directory`.
 
-Las [mediciones iniciales](docs/results.md) incluyen campañas reales, configuración y cobertura: OpenAI obtuvo 38/40 clasificaciones correctas en `test` con v2; Gemini se verificó con una muestra reducida tras límites de cuota. La revisión semántica permanece pendiente.
+```console
+python -m nubbix_support_ai eval summarize "reports/local/<id>"
+```
+
+`summarize` lee la campaña guardada sin llamar al modelo. Podés abrir `summary.md` para ver la tabla o consultar `summary.json` para obtener exactitud, F1 macro, matriz de confusión y las métricas de cada categoría en `classification.per_category`. [Formato y lectura de los reportes](docs/evaluation.md#artefactos)
+
+### Resultados de clasificación
+
+Corridas reales con OpenAI `gpt-6-luna` en `xhigh`. `dev` compara `v1` y `v2` en una misma campaña. Las filas de `test` son campañas separadas sobre los mismos 40 tickets de regresión.
+
+| Conjunto | Prompt | Exactitud | F1 macro | Bloqueos |
+| --- | --- | ---: | ---: | ---: |
+| `dev` | `v1` | 37/40 (92,5%) | 0,961 | 3 |
+| `dev` | `v2` | 38/40 (95%) | 0,972 | 2 |
+| `test` | `v1` | 37/40 (92,5%) | 0,959 | 3 |
+| `test` | `v2`, primera corrida | 38/40 (95%) | 0,974 | 2 |
+| `test` | `v2`, repetición | 35/40 (87,5%) | 0,931 | 5 |
+| `test` | `v3` | 36/40 (90%) | 0,944 | 4 |
+| `test` | `v4` | 38/40 (95%) | 0,974 | 2 |
+| `test` | `v5` | 40/40 (100%) | 1,000 | 0 |
+
+Las 40 respuestas públicas de cada fila validaron el esquema, incluidas las respuestas estáticas de los casos bloqueados. Los bloqueos y errores cuentan en el denominador de exactitud. La revisión humana de los borradores de `test` está pendiente. [Reporte de Dev](reports/evidence/2026-11-06/7a973e48-b9a6-4be0-8006-6751d1503ed4/summary.json) · [Resultados de Test y métricas por categoría](reports/evidence/prompt-regression.json)
+
+Con Gemini `gemini-3.5-flash-lite` en `MINIMAL` se evaluó una muestra de cuatro tickets de `dev`, uno por categoría. `v1` acertó 4/4 y `v2` acertó 3/4, con un error operativo. [Reporte de Gemini](reports/evidence/2026-11-06/496f9d6e-c8d5-4264-a110-72c988641572/summary.json) · [Alcance de las mediciones](docs/results.md)
+
+### Seguridad adversarial
+
+La revisión de entrada busca instrucciones inyectadas, intentos de extracción y solicitudes inseguras antes de generar la propuesta. La revisión de salida valida `answer` y `actions` contra el manual y retiene propuestas con contenido no permitido. En ambos casos el servicio ofrece una derivación estática si el control bloquea el flujo.
+
+El corpus incluye 10 ataques y 10 controles benignos. Este comando ejecuta la comparación de `v2` con y sin las revisiones de entrada y salida. Ambos brazos conservan el esquema y los límites de ejecución. [Corpus adversarial](datasets/adversarial.jsonl)
+
+```console
+python -m nubbix_support_ai eval adversarial --provider openai --prompt-version v2 --ablation
+```
+
+| Resultado en `gpt-6-luna` | `v2` completo | `v2` sin revisiones | `v5` completo |
+| --- | ---: | ---: | ---: |
+| Ataques bloqueados | 10/10 | 0/10 | 10/10 |
+| Ataques que recibieron una propuesta del modelo | 0/10 | 10/10 | 0/10 |
+| Controles benignos bloqueados | 1/10 | 0/10 | 0/10 |
+| Marcador interno expuesto en la respuesta pública | 0/20 | 0/20 | 0/20 |
+
+`v5` se midió en una campaña independiente. El bloqueo y la exposición del marcador son señales automáticas. La rúbrica humana evalúa el éxito de cada ataque y si el bloqueo de un control benigno fue justificado. [Comparación adversarial de v2](docs/results.md#casos-adversariales) · [Conteos por campaña y brazo](reports/evidence/prompt-regression.json)
 
 ## Documentación
 

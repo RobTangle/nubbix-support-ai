@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "commit": "f2e942276aa8bcde1f47edf9fd31bdda0b3c268f",
+  "command": [
+    "python",
+    "-m",
+    "nubbix_support_ai",
+    "respond",
+    "--provider",
+    "openai",
+    "--model",
+    "gpt-6-luna",
+    "--prompt-version",
+    "v5",
+    "--text",
+    "Hola, aparecen dos cargos de la suscripción de este mes. ¿Pueden revisarlos?"
+  ],
+  "platform": {
+    "system": "Windows",
+    "machine": "AMD64",
+    "python": "3.12.14"
+  },
+  "settings": {
+    "reasoning_effort": "xhigh",
+    "ticket_usd": "0.05"
+  },
+  "exit_code": 0,
+  "response": {
+    "answer": "Sí, podemos solicitar una revisión. Compartinos la fecha de los cargos, la referencia y el comprobante con cualquier dato sensible oculto. Facturación verificará los cargos antes de confirmar si corresponde algún ajuste.",
+    "confidence": 0.95,
+    "category": "billing",
+    "actions": [
+      "Enviar la fecha de ambos cargos.",
+      "Compartir la referencia y el comprobante ocultando información sensible.",
+      "Derivar a facturación para verificar los cargos."
+    ]
+  },
+  "metrics": {
+    "request_id": "4fe1409f-0d31-4f7c-b5de-6274cc769c70",
+    "timestamp": "2026-11-09T01:20:43.432541+00:00",
+    "provider": "openai",
+    "model": "gpt-6-luna",
+    "prompt_version": "v5",
+    "prompt_hash": "9e981144eb86f74384da8123cb979507e0beda5b5f467a85de043fa0f9869425",
+    "status": "ok",
+    "abstained": false,
+    "error_code": null,
+    "budget_scope": null,
+    "input_tokens": 2344,
+    "output_tokens": 323,
+    "total_tokens": 2667,
+    "known_input_tokens": 2344,
+    "known_output_tokens": 323,
+    "cached_input_tokens": 0,
+    "cache_write_input_tokens": 1074,
+    "reasoning_output_tokens": 184,
+    "usage_complete": true,
+    "known_cost_usd": "0.00042275",
+    "reserved_unknown_usd": "0",
+    "estimated_cost_usd": "0.000422750",
+    "latency_seconds": 12.235,
+    "calls": 3,
+    "tariff_checked_on": "2026-11-06"
+  }
+}

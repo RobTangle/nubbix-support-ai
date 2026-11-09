@@ -12,6 +12,14 @@ python -m nubbix_support_ai eval adversarial --provider openai --prompt-version 
 
 Estos comandos llaman a las APIs. Para inspeccionar sus opciones, ejecutá el comando correspondiente con `--help`.
 
+Para consultar una campaña ya guardada, pasá la ruta que devolvió `directory`. Este comando lee los archivos locales.
+
+```console
+python -m nubbix_support_ai eval summarize "reports/local/<id>"
+```
+
+La salida incluye `summary`, `manifest`, `cases` y `reviews`. Para leer una tabla desde la terminal o el editor, abrí `summary.md` en esa misma carpeta.
+
 Cada campaña selecciona un proveedor, modelo y parámetros. Las comparaciones entre versiones utilizan esos mismos valores y alternan el orden de las versiones por caso: v1/v2 en el primero, v2/v1 en el segundo. El runner admite únicamente comparaciones cuyos bundles tienen el mismo `comparison_hash`, que representa instrucciones, manual, seguridad y reparación. Si esos componentes cambian, rechaza la comparación automática con `incomparable_prompt_bundles`; se pueden ejecutar campañas separadas e interpretar el contraste como una comparación de pipelines.
 
 La implementación registra resultados de software con proveedores controlados en las pruebas. Eso valida el mecanismo de evaluación, no la calidad de OpenAI o Gemini. Las mediciones de modelos reales deben ejecutarse explícitamente y revisarse antes de afirmar mejoras.
