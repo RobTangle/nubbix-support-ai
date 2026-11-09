@@ -30,7 +30,20 @@ jobs:
       - run: uv run --locked pytest
       - run: uv run --locked ruff check src tests
       - run: uv run --locked mypy
-      - run: uv run --locked nubbix prompts check
+      - run: uv run --locked python -m nubbix_support_ai prompts check
+      - name: Verify installation with venv and pip
+        if: matrix.python == '3.12'
+        shell: bash
+        run: |
+          uv run --locked python -m venv .venv-pip
+          smoke_python=./.venv-pip/bin/python
+          if [[ "$RUNNER_OS" == Windows ]]; then
+            smoke_python=./.venv-pip/Scripts/python.exe
+          fi
+          "$smoke_python" -m pip install --only-binary=:all: -r requirements.txt
+          "$smoke_python" -m pip install --no-deps -e .
+          "$smoke_python" -m pip check
+          "$smoke_python" -m nubbix_support_ai prompts check
       - name: Verify requirements export
         run: |
           uv export --locked --no-dev --no-hashes --no-emit-project --no-header --output-file requirements.check.txt --quiet
@@ -75,3 +88,18 @@ jobs:
           app = create_app(Settings())
           print(app.title, backend.openssl_version_text())
           PY
+      - name: Run the offline test suite
+        run: |
+          python - <<'PY'
+          import subprocess
+          import sys
+          import tomllib
+          from pathlib import Path
+
+          lock = tomllib.loads(Path("uv.lock").read_text(encoding="utf-8"))
+          test_tools = {"pytest", "pytest-asyncio", "pytest-socket"}
+          pins = [f'{p["name"]}=={p["version"]}' for p in lock["package"] if p["name"] in test_tools]
+          assert len(pins) == len(test_tools)
+          subprocess.run([sys.executable, "-m", "pip", "install", "--only-binary=:all:", *pins], check=True)
+          PY
+          python -m pytest
