@@ -13,6 +13,7 @@ import uvicorn
 from pydantic import ValidationError
 
 from nubbix_support_ai.bootstrap import Runtime
+from nubbix_support_ai.cli_progress import CliProgress
 from nubbix_support_ai.config import Settings
 from nubbix_support_ai.observability.costs import Budget
 from nubbix_support_ai.prompting.catalog import load_catalog
@@ -49,10 +50,12 @@ async def _with_sigterm(
         signal.signal(signal.SIGTERM, previous)
 
 
-def _selection(parser: argparse.ArgumentParser) -> None:
+def _run_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--provider", choices=["openai", "google"])
     parser.add_argument("--model", help="Model registered in the price catalog")
     parser.add_argument("--prompt-version", help="Prompt version from the YAML registry")
+    parser.add_argument("--progress", action=argparse.BooleanOptionalAction,
+                        help="Show progress on stderr (automatic in terminals)")
 
 
 def _parser() -> argparse.ArgumentParser:
@@ -62,7 +65,7 @@ def _parser() -> argparse.ArgumentParser:
     source = respond.add_mutually_exclusive_group(required=True)
     source.add_argument("--text")
     source.add_argument("--stdin", action="store_true")
-    _selection(respond)
+    _run_options(respond)
     prompts = commands.add_parser("prompts", help="Inspect and validate prompt versions")
     prompt_actions = prompts.add_subparsers(dest="action", required=True)
     prompt_actions.add_parser("list")
@@ -73,7 +76,7 @@ def _parser() -> argparse.ArgumentParser:
     actions = evaluate.add_subparsers(dest="action", required=True)
     for name in ("run", "compare", "adversarial"):
         command = actions.add_parser(name)
-        _selection(command)
+        _run_options(command)
         command.add_argument("--split", choices=["dev", "test"], default="dev")
         command.add_argument("--max-cost-usd", type=Decimal)
         if name == "compare":
@@ -86,20 +89,25 @@ def _parser() -> argparse.ArgumentParser:
     return parser
 
 
-async def _respond(settings: Settings, args: argparse.Namespace) -> dict[str, Any]:
+async def _respond(settings: Settings, args: argparse.Namespace,
+                   progress: CliProgress) -> dict[str, Any]:
     text = sys.stdin.read() if args.stdin else args.text
     ticket = Ticket(text=text)
-    async with Runtime(settings) as runtime:
-        result = await runtime.service(args.provider, args.model).run(
+    async with progress.live(), Runtime(settings) as runtime:
+        service = runtime.service(args.provider, args.model)
+        progress.start_ticket(service.provider.name, service.provider.model)
+        result = await service.run(
             ticket, prompt_version=args.prompt_version,
+            on_event=progress.on_event if progress.enabled else None,
         )
         return result.response.model_dump()
 
 
-async def _evaluate(settings: Settings, args: argparse.Namespace) -> dict[str, Any]:
+async def _evaluate(settings: Settings, args: argparse.Namespace,
+                    progress: CliProgress) -> dict[str, Any]:
     from nubbix_support_ai.evaluation.data import load_cases
     from nubbix_support_ai.evaluation.runner import run_evaluation
-    async with Runtime(settings) as runtime:
+    async with progress.live(), Runtime(settings) as runtime:
         adversarial = args.action == "adversarial"
         path = settings.project_root / "datasets" / (
             "adversarial.jsonl" if adversarial else "tickets.jsonl"
@@ -118,6 +126,7 @@ async def _evaluate(settings: Settings, args: argparse.Namespace) -> dict[str, A
             runtime, cases, provider=args.provider or settings.provider,
             prompt_versions=versions, model=args.model, campaign_budget=budget,
             adversarial=adversarial, ablation=getattr(args, "ablation", False),
+            on_event=progress.on_event if progress.enabled else None,
         )
         return result.to_dict()
 
@@ -125,10 +134,18 @@ async def _evaluate(settings: Settings, args: argparse.Namespace) -> dict[str, A
 def main(argv: Sequence[str] | None = None) -> int:
     args = _parser().parse_args(argv)
     exit_code = 0
+    progress: CliProgress | None = None
     try:
         settings = Settings.load()
-        if args.command == "respond":
-            value = asyncio.run(_with_sigterm(lambda: _respond(settings, args)))
+        if args.command == "respond" or (args.command == "eval" and args.action != "summarize"):
+            progress = CliProgress(sys.stderr, args.progress, settings.reports_dir)
+            if args.command == "respond":
+                value = asyncio.run(_with_sigterm(lambda: _respond(settings, args, progress)))
+                progress.finish_ticket()
+            else:
+                value = asyncio.run(_with_sigterm(lambda: _evaluate(settings, args, progress)))
+                progress.finish_campaign(value["summary"])
+                exit_code = 0 if value["summary"]["status"] == "completed" else 1
         elif args.command == "prompts":
             catalog = load_catalog(settings.project_root)
             value = {"default": catalog.default, "baseline": catalog.baseline,
@@ -140,22 +157,22 @@ def main(argv: Sequence[str] | None = None) -> int:
             uvicorn.run(create_app(settings), host="127.0.0.1", port=args.port, workers=1,
                         timeout_graceful_shutdown=5)
             return 0
-        elif args.action == "summarize":
+        else:
             from nubbix_support_ai.evaluation.reports import read_report
             directory = args.report.resolve()
             value = read_report(directory.parent, directory.name)
-        else:
-            value = asyncio.run(_with_sigterm(lambda: _evaluate(settings, args)))
-            exit_code = 0 if value["summary"]["status"] == "completed" else 1
         print(json.dumps(value, ensure_ascii=False, allow_nan=False))
         return exit_code
     except AppError as exc:
-        print(json.dumps({"error": {"code": exc.code, "request_id": exc.request_id}}), file=sys.stderr)
+        error: dict[str, str | None] = {"code": exc.code, "request_id": exc.request_id}
     except (ValidationError, ValueError):
-        print(json.dumps({"error": {"code": "invalid_input_or_configuration"}}), file=sys.stderr)
+        error = {"code": "invalid_input_or_configuration"}
     except (_TerminationRequested, KeyboardInterrupt) as exc:
-        print(json.dumps({"error": {"code": "cancelled"}}), file=sys.stderr)
-        return 143 if isinstance(exc, _TerminationRequested) else 130
+        error = {"code": "cancelled"}
+        exit_code = 143 if isinstance(exc, _TerminationRequested) else 130
     except OSError:
-        print(json.dumps({"error": {"code": "io_error"}}), file=sys.stderr)
-    return 1
+        error = {"code": "io_error"}
+    if progress is not None:
+        progress.fail(error["code"])
+    print(json.dumps({"error": error}), file=sys.stderr)
+    return exit_code or 1

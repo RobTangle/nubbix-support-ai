@@ -110,6 +110,8 @@ python -m nubbix_support_ai respond --provider openai --text "Me cobraron dos ve
 
 La CLI imprime `answer`, `confidence`, `category` y `actions` como JSON en stdout. Los errores operativos se escriben en stderr y devuelven un código de salida distinto de cero.
 
+En una terminal, `respond` muestra las etapas del análisis, el tiempo transcurrido y los reintentos en stderr. Podés redirigir el JSON a un archivo con `> respuesta.json` y seguir viendo el avance. Agregá `--progress` si tu terminal no lo muestra automáticamente, o `--no-progress` para desactivarlo en un script.
+
 ### Ejemplo de respuesta y métricas
 
 Con el entorno activo, ejecutá este comando para probar un ticket sintético con OpenAI y `v5`. La [ejecución de referencia](reports/evidence/cli-smoke.json) se hizo desde la CLI en Windows con razonamiento `xhigh`.
@@ -263,6 +265,8 @@ python -m nubbix_support_ai eval run --provider openai --split test --prompt-ver
 ```
 
 Estos comandos llaman al proveedor. Podés usar `--max-cost-usd` para fijar el presupuesto local de la campaña. `compare` alterna las versiones por caso con el mismo modelo y requiere que compartan instrucciones, manual y reglas de revisión y reparación. Para contrastar versiones con cambios en esos componentes, corré una campaña `run` por versión sobre el mismo conjunto.
+
+Durante una campaña, la línea de progreso muestra cuántas ejecuciones se procesaron, el caso activo, la etapa y el tiempo transcurrido. Los reintentos, errores y el resumen quedan en el historial de la terminal. Si se interrumpe una campaña y se guardó el reporte parcial, la CLI muestra la ruta a su `summary.md`.
 
 La salida de cada campaña indica su carpeta en el campo `directory`. Para revisar una corrida local, reemplazá `<id>` por su identificador o usá la ruta devuelta en `directory`.
 

@@ -65,16 +65,18 @@ def test_sigterm_respond_cancels_without_retry_and_restores_previous_handler(
     assert signal.getsignal(signal.SIGTERM) is previous and observed == []
 
 
-@pytest.mark.parametrize("action", ["run", "compare", "adversarial"])
+@pytest.mark.parametrize(("action", "progress"), [
+    ("run", []), ("compare", []), ("adversarial", []), ("run", ["--progress"]),
+])
 def test_sigterm_evaluation_keeps_completed_case_and_interrupts_the_next(
-    tmp_path, monkeypatch, capsys, previous_sigterm_handler, action,
+    tmp_path, monkeypatch, capsys, previous_sigterm_handler, action, progress,
 ):
     previous, observed = previous_sigterm_handler
     provider = SignallingProvider(trigger_at=4)
     settings = settings_at(tmp_path)
     monkeypatch.setattr(cli.Settings, "load", lambda: settings)
     monkeypatch.setattr(cli, "Runtime", lambda _: Runtime(settings, {"openai": provider}))
-    assert cli.main(["eval", action]) == 143
+    assert cli.main(["eval", action, *progress]) == 143
     output = capsys.readouterr()
     reports = list_reports(settings.reports_dir)
     assert len(reports) == 1
@@ -84,7 +86,10 @@ def test_sigterm_evaluation_keeps_completed_case_and_interrupts_the_next(
     assert summary["completed"] == len(report["cases"]) == 1
     assert Decimal(summary["budget"]["pending_usd"]) == 0
     assert Decimal(summary["budget"]["reserved_unknown_usd"]) > 0
-    assert output.out == "" and json.loads(output.err)["error"]["code"] == "cancelled"
+    if progress:
+        assert "Evaluación cancelada" in output.err and "1/40" in output.err
+        assert f"{reports[0]['run_id']}/summary.md" in output.err
+    assert output.out == "" and json.loads(output.err.splitlines()[-1])["error"]["code"] == "cancelled"
     assert len(provider.calls) == 4 and provider.closed
     assert signal.getsignal(signal.SIGTERM) is previous and observed == []
 
@@ -106,6 +111,21 @@ def test_sigint_keeps_exit_130_and_closes_the_runtime(
     assert output.out == "" and json.loads(output.err)["error"]["code"] == "cancelled"
     assert len(provider.calls) == 1 and provider.closed
     assert signal.getsignal(signal.SIGTERM) is previous and observed == []
+
+
+def test_sigterm_during_close_points_to_the_complete_campaign(
+    tmp_path, monkeypatch, capsys, previous_sigterm_handler,
+):
+    provider = SignallingProvider(trigger_at=999, signal_on_close=True)
+    settings = settings_at(tmp_path)
+    monkeypatch.setattr(cli.Settings, "load", lambda: settings)
+    monkeypatch.setattr(cli, "Runtime", lambda _: Runtime(settings, {"openai": provider}))
+    assert cli.main(["eval", "run", "--split", "test", "--progress"]) == 143
+    output = capsys.readouterr()
+    report = list_reports(settings.reports_dir)[0]
+    assert report["status"] == "completed" and report["completed"] == 40
+    assert output.out == "" and json.loads(output.err.splitlines()[-1])["error"]["code"] == "cancelled"
+    assert "Reporte guardado" in output.err and f"{report['run_id']}/summary.md" in output.err
 
 
 @pytest.mark.parametrize("failure", [False, True])
