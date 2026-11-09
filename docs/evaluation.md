@@ -12,6 +12,8 @@ python -m nubbix_support_ai eval adversarial --provider openai --prompt-version 
 
 Estos comandos llaman a las APIs. Para inspeccionar sus opciones, ejecutá el comando correspondiente con `--help`.
 
+Las campañas muestran el avance en stderr cuando está conectado a una terminal. El total cuenta cada ejecución por caso, versión y brazo. `--progress` lo fuerza también al redirigir stderr, donde se escriben líneas completas. `--no-progress` desactiva los mensajes de avance. El reporte JSON se emite por stdout.
+
 Para consultar una campaña ya guardada, pasá la ruta que devolvió `directory`. Este comando lee los archivos locales.
 
 ```console

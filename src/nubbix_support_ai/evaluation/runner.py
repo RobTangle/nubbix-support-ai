@@ -116,11 +116,12 @@ async def run_evaluation(runtime: Runtime, cases: Sequence[EvalCase], *, provide
     budget = campaign_budget if campaign_budget is not None else Budget(runtime.settings.campaign_usd)
     arms = ("full", "unguarded") if ablation else ("full",)
     planned = len(cases) * len(prompt_versions) * len(arms)
+    splits = sorted({case.split for case in cases})
     manifest = {
         "provider": service.provider.name, "model": service.provider.model,
         "parameters": service.provider.parameters, "dataset_hash": dataset_hash(cases),
         "dataset_source": "Nubbix prototype synthetic corpus, known regression cases",
-        "synthetic": True, "splits": sorted({case.split for case in cases}),
+        "synthetic": True, "splits": splits,
         "case_ids": [case.id for case in cases], "case_count": len(cases),
         "prompt_versions": list(prompt_versions), "prompts": [{
             "version": version, "content_hash": catalog.get(version).content_hash,
@@ -142,7 +143,8 @@ async def run_evaluation(runtime: Runtime, cases: Sequence[EvalCase], *, provide
     writer.snapshot(status=status, planned=planned)
     try:
         await events.emit("evaluation.started", total=planned, provider=provider,
-                          model=service.provider.model)
+                          model=service.provider.model, split=", ".join(splits),
+                          versions=", ".join(prompt_versions))
         for index, case in enumerate(cases):
             versions = list(prompt_versions) if index % 2 == 0 else list(reversed(prompt_versions))
             for version in versions:
@@ -174,7 +176,8 @@ async def run_evaluation(runtime: Runtime, cases: Sequence[EvalCase], *, provide
                     await events.emit("evaluation.case.completed", case_id=row["case_id"],
                                       dataset_case_id=case.id, prompt_version=version, arm=arm,
                                       completed=len(writer.rows), total=planned,
-                                      status=row["status"], request_id=row["request_id"])
+                                      status=row["status"], error_code=error_code,
+                                      request_id=row["request_id"])
                     if error_code == "budget_exceeded" and budget_scope != "ticket":
                         status, stopping_error = "budget_exhausted", error_code
                         break
