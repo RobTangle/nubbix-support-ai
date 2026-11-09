@@ -2,14 +2,15 @@
 
 El laboratorio permite probar tickets, comparar versiones de prompt y revisar el flujo que produjo cada resultado. FastAPI sirve la API y los archivos HTML, CSS y JavaScript locales; no hace falta Node ni un CDN.
 
-Desde la raíz del checkout, prepará `.venv` con el [inicio rápido](../README.md#inicio-rápido) y usá el comando de tu shell. Podés abrir el laboratorio antes de configurar un proveedor.
+Desde la raíz del clon, prepará el entorno con el [inicio rápido](../README.md#inicio-rápido) y usá el comando de tu shell. Podés abrir el laboratorio antes de configurar un proveedor.
 
 | Shell y sistema | Iniciar el laboratorio |
 | --- | --- |
 | PowerShell en Windows | `.\.venv\Scripts\python.exe -m nubbix_support_ai web` |
 | CMD en Windows | `.venv\Scripts\python.exe -m nubbix_support_ai web` |
 | Git Bash en Windows | `./.venv/Scripts/python.exe -m nubbix_support_ai web` |
-| Bash/Zsh en Linux, macOS o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
+| Bash/Zsh en Linux, macOS con Apple Silicon o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
+| Mac Intel con el entorno de Miniforge activo | `python -m nubbix_support_ai web` |
 
 Windows Terminal y VS Code usan la sintaxis del shell de la pestaña. La [guía de instalación y terminales](setup.md) explica configuración inicial, activación opcional, WSL y errores de PATH.
 

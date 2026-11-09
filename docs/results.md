@@ -54,4 +54,4 @@ El [registro acumulado](../reports/evidence/2026-11-06/budget.json) incluye los 
 
 La reserva no es gasto confirmado y el costo calculado no reemplaza la factura del proveedor. Los presupuestos en los resúmenes son snapshots acumulados de esta verificación compartida; no deben sumarse entre reportes. Los costos de cada tabla proceden de las filas de esa campaña.
 
-La validez del software se verifica por separado con pruebas sin red de modelos. La CI está configurada para Windows/Linux y Python 3.12/3.13; esta verificación local se ejecutó en Windows con ambas versiones.
+La validez del software se verifica por separado con pruebas sin red de modelos. Para estas mediciones, la verificación local se ejecutó en Windows con Python 3.12 y 3.13.
