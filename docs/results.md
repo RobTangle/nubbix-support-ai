@@ -6,6 +6,8 @@ Los [artefactos publicados](../reports/evidence/2026-11-06/index.json) conservan
 
 El resumen de regresión reúne seis mediciones de `test` para `v1` a `v5`, incluida la repetición de `v2`. También conserva los conteos de la ablación de `v2` y de la campaña adversarial de `v5`, junto con sus identificadores y hashes. [Resultados de regresión](../reports/evidence/prompt-regression.json)
 
+La [prueba de la CLI](../reports/evidence/cli-smoke.json) registra por separado el comando `respond`, el JSON validado y la fila de métricas de una ejecución real con OpenAI y `v5`.
+
 ## OpenAI: comparación y regresión
 
 Modelo `gpt-6-luna`, razonamiento `xhigh`, modo estándar, sin ajuste de temperatura. Cada ticket permitido utiliza revisión de entrada, generación y revisión de salida. Se alternó el orden de v1/v2 por caso en desarrollo.

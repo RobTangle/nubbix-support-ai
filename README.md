@@ -112,34 +112,38 @@ La CLI imprime `answer`, `confidence`, `category` y `actions` como JSON en stdou
 
 ### Ejemplo de respuesta y métricas
 
-Este comando usa el ticket sintético y la configuración de una verificación de integración con OpenAI. Ejecutalo con el entorno activo. [Verificación de ambos proveedores](reports/evidence/2026-11-06/smoke.json)
+Con el entorno activo, ejecutá este comando para probar un ticket sintético con OpenAI y `v5`. La [ejecución de referencia](reports/evidence/cli-smoke.json) se hizo desde la CLI en Windows con razonamiento `xhigh`.
 
 ```console
-python -m nubbix_support_ai respond --provider openai --model gpt-6-luna --prompt-version v1 --text "Hola, aparecen dos cargos de la suscripción de este mes. ¿Pueden revisarlos?"
+python -m nubbix_support_ai respond --provider openai --model gpt-6-luna --prompt-version v5 --text "Hola, aparecen dos cargos de la suscripción de este mes. ¿Pueden revisarlos?"
 ```
 
 La respuesta validada que quedó registrada en esa verificación fue la siguiente.
 
 ```json
 {
-  "answer": "Lamento la confusión. Facturación puede revisar los cargos antes de evaluar cualquier ajuste. ¿Podés compartir la fecha de cada cargo, sus referencias y un comprobante con los datos sensibles ocultos?",
-  "confidence": 0.98,
+  "answer": "Sí, podemos solicitar una revisión. Compartinos la fecha de los cargos, la referencia y el comprobante con cualquier dato sensible oculto. Facturación verificará los cargos antes de confirmar si corresponde algún ajuste.",
+  "confidence": 0.95,
   "category": "billing",
-  "actions": ["Ocultá los datos sensibles del comprobante, como el número completo de la tarjeta."]
+  "actions": [
+    "Enviar la fecha de ambos cargos.",
+    "Compartir la referencia y el comprobante ocultando información sensible.",
+    "Derivar a facturación para verificar los cargos."
+  ]
 }
 ```
 
-El servicio agrega una línea por solicitud procesada a `data/metrics.jsonl`. Estos campos de la misma corrida muestran los tokens sumados entre etapas, la latencia total y el costo estimado en USD.
+Por defecto, el servicio agrega una línea por solicitud procesada a `data/metrics.jsonl`. Estos campos del registro de la misma corrida muestran los tokens sumados entre etapas, la latencia total y el costo estimado en USD.
 
 ```json
 {
-  "request_id": "7d2d8012-2107-4a30-a8a7-0ca45544b7d5",
-  "timestamp": "2026-11-06T17:07:52.386229+00:00",
-  "input_tokens": 1666,
-  "output_tokens": 265,
-  "total_tokens": 1931,
-  "latency_seconds": 8.437,
-  "estimated_cost_usd": "0.000299100"
+  "request_id": "4fe1409f-0d31-4f7c-b5de-6274cc769c70",
+  "timestamp": "2026-11-09T01:20:43.432541+00:00",
+  "input_tokens": 2344,
+  "output_tokens": 323,
+  "total_tokens": 2667,
+  "latency_seconds": 12.235,
+  "estimated_cost_usd": "0.000422750"
 }
 ```
 
