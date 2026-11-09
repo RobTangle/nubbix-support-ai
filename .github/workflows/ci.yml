@@ -12,6 +12,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest]
         python: ['3.12', '3.13']
+        include:
+          - os: macos-15
+            python: '3.12'
     runs-on: ${{ matrix.os }}
     env:
       UV_PYTHON: ${{ matrix.python }}
@@ -32,3 +35,43 @@ jobs:
         run: |
           uv export --locked --no-dev --no-hashes --no-emit-project --no-header --output-file requirements.check.txt --quiet
           uv run --locked python -c "from pathlib import Path; assert Path('requirements.txt').read_text() == Path('requirements.check.txt').read_text(), 'requirements export is stale'"
+  macos-intel-install:
+    runs-on: macos-15-intel
+    defaults:
+      run:
+        shell: bash -el {0}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - uses: conda-incubator/setup-miniconda@8ee1f361103df19b6f8c8655fd3967a8ecb162d5 # v4.0.1
+        with:
+          miniforge-version: '26.9.4-1'
+          activate-environment: nubbix-support-ai
+          python-version: '3.12'
+      - name: Install the pinned dependencies
+        run: |
+          cryptography_pin="$(sed -n '/^cryptography==/p' requirements.txt)"
+          test -n "$cryptography_pin"
+          conda install --yes --override-channels --channel conda-forge pip "$cryptography_pin"
+          python -m pip install --only-binary=:all: -r requirements.txt
+          python -m pip install --no-deps -e .
+          python -m pip check
+      - name: Check the CLI and load the web application
+        run: |
+          python -m nubbix_support_ai prompts check
+          python - <<'PY'
+          import platform
+          import sys
+
+          from cryptography.hazmat.backends.openssl.backend import backend
+          from google import genai
+
+          from nubbix_support_ai.config import Settings
+          from nubbix_support_ai.web.app import create_app
+
+          assert platform.machine() == "x86_64"
+          assert sys.version_info[:2] == (3, 12)
+          app = create_app(Settings())
+          print(app.title, backend.openssl_version_text())
+          PY

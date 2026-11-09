@@ -2,7 +2,7 @@
 
 El runner ejecuta el mismo `SupportService.run` utilizado por CLI y HTTP. Procesa los casos secuencialmente y conserva una carpeta nueva por campaña. Abrir un reporte existente no ejecuta llamadas y una campaña interrumpida no se reanuda automáticamente.
 
-Desde la raíz del repositorio, activá `.venv` para usar `python` en estos ejemplos o reemplazalo por la ruta del intérprete del entorno. [Rutas y activación por shell](setup.md#elegir-el-shell)
+Desde la raíz del repositorio, activá el entorno para usar `python` en estos ejemplos. Si creaste `.venv`, también podés usar la ruta a su intérprete. [Rutas y activación por shell](setup.md#elegir-el-shell)
 
 ```console
 python -m nubbix_support_ai eval run --provider openai --prompt-version v1 --split dev

@@ -16,7 +16,11 @@ Probá un ticket desde el navegador. Elegí el proveedor, el modelo y la versió
 
 ## Inicio rápido
 
-Necesitás Python 3.12 o superior con `venv` y `pip`. uv es opcional. Si Debian o Ubuntu muestra `ensurepip is not available`, la guía indica qué paquete instalar. [Problemas frecuentes](docs/setup.md#problemas-frecuentes)
+Para el inicio rápido con `pip`, usá Python 3.12 o superior con `venv`. En Windows, elegí Python x64. uv es opcional. Si Debian o Ubuntu muestra `ensurepip is not available`, la guía indica qué paquete instalar. [Problemas frecuentes](docs/setup.md#problemas-frecuentes)
+
+En **Mac Intel**, prepará el entorno con Miniforge para instalar el binario de `cryptography` y después seguí con la configuración del proveedor. [Instalar en Mac Intel](docs/setup.md#instalar-en-mac-intel)
+
+En Mac con Apple Silicon, usá Python nativo `arm64` y seguí el bloque de Bash/Zsh.
 
 Abrí la terminal en la raíz del clon, donde está `pyproject.toml`. En Windows Terminal o VS Code, elegí el bloque según el shell de la pestaña. [Perfiles de terminal y WSL](docs/setup.md#elegir-el-shell)
 
@@ -54,7 +58,7 @@ python -m venv .venv
 ./.venv/Scripts/python.exe -m nubbix_support_ai prompts check
 ```
 
-#### Bash/Zsh en Linux, macOS o WSL
+#### Bash/Zsh en Linux, macOS con Apple Silicon o WSL
 
 ```bash
 python3 --version
@@ -72,7 +76,7 @@ Analizar un ticket o ejecutar una evaluación puede generar cargos del proveedor
 
 ## Uso con CLI
 
-Con una clave configurada, ejecutá `respond` desde la raíz del clon. Los comandos usan el Python de `.venv` directamente. Para Gemini, reemplazá `--provider openai` por `--provider google`.
+Con una clave configurada, ejecutá `respond` desde la raíz del clon con el comando de tu entorno. Para Gemini, reemplazá `--provider openai` por `--provider google`.
 
 ### PowerShell en Windows
 
@@ -92,10 +96,16 @@ Con una clave configurada, ejecutá `respond` desde la raíz del clon. Los coman
 ./.venv/Scripts/python.exe -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
 ```
 
-### Bash/Zsh en Linux, macOS o WSL
+### Bash/Zsh en Linux, macOS con Apple Silicon o WSL
 
 ```bash
 ./.venv/bin/python -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
+```
+
+### Mac Intel con el entorno de Miniforge activo
+
+```bash
+python -m nubbix_support_ai respond --provider openai --text "Me cobraron dos veces este mes"
 ```
 
 La CLI imprime `answer`, `confidence`, `category` y `actions` como JSON en stdout. Los errores operativos se escriben en stderr y devuelven un código de salida distinto de cero.
@@ -111,7 +121,8 @@ Iniciá el servidor desde la raíz del clon con el comando de tu shell.
 | PowerShell en Windows | `.\.venv\Scripts\python.exe -m nubbix_support_ai web` |
 | CMD en Windows | `.venv\Scripts\python.exe -m nubbix_support_ai web` |
 | Git Bash en Windows | `./.venv/Scripts/python.exe -m nubbix_support_ai web` |
-| Bash/Zsh en Linux, macOS o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
+| Bash/Zsh en Linux, macOS con Apple Silicon o WSL | `./.venv/bin/python -m nubbix_support_ai web` |
+| Mac Intel con el entorno de Miniforge activo | `python -m nubbix_support_ai web` |
 
 Podés abrir el laboratorio y consultar el historial y los reportes sin claves. Si modificás `.env` con el servidor abierto, reinicialo para cargar la configuración. [Abrir el laboratorio en el puerto 8000](http://127.0.0.1:8000)
 
@@ -182,7 +193,7 @@ En **Evaluaciones** podés ejecutar campañas y comparar prompts o modelos sobre
 
 *Comparación de v2 (A) y v5 (B) a partir de dos campañas guardadas con el mismo modelo sobre 40 tickets sintéticos de `test`.*
 
-Para ejecutar una campaña desde la terminal, elegí un comando para un proveedor con clave configurada. Usá `python` con `.venv` activo o indicá la ruta del intérprete del entorno. [Rutas por shell](docs/setup.md#elegir-el-shell)
+Para ejecutar una campaña desde la terminal, elegí un comando para un proveedor con clave configurada. Usá `python` con el entorno activo o indicá la ruta al intérprete de `.venv`. [Rutas por shell](docs/setup.md#elegir-el-shell)
 
 ```console
 python -m nubbix_support_ai eval compare --provider openai --split dev --prompt-versions v1 v2
@@ -220,7 +231,7 @@ uv run --locked ruff check src tests
 uv run --locked mypy
 ```
 
-La suite no requiere claves y restringe conexiones a loopback para soportar el event loop de Windows. La CI está configurada para Python 3.12/3.13 en Windows y Linux. El entorno de desarrollo se fija con `uv.lock`; `requirements.txt` se exporta desde ese lock.
+La suite no requiere claves y restringe conexiones a loopback. La CI está configurada para Python 3.12 y 3.13 en Windows y Linux y Python 3.12 en macOS con Apple Silicon. En Mac Intel, comprueba la instalación con Miniforge y el arranque de la CLI. `requirements.txt` se exporta desde `uv.lock`.
 
 También podés iniciar la CI desde GitHub: **Actions → Python quality → Run workflow**.
 
